@@ -74,8 +74,8 @@ public class Ec2Client {
 			BasicAWSCredentials awsCreds = new BasicAWSCredentials(this.loadTestConfig.getAwsAccessKey(), this.loadTestConfig.getAwsSecretAccessKey());
 			ec2 = AmazonEC2ClientBuilder.standard().withRegion(INSTANCE_REGION).withCredentials(new AWSStaticCredentialsProvider(awsCreds)).build();
 		} else {
-			log.error("AWS credentials are empty in application.properties");
 			if(this.loadTestConfig.getWorkerUrlList().isEmpty()) {
+				log.error("AWS credentials are empty in application.properties");
 				System.exit(0);	
 			}
 		}

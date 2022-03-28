@@ -364,9 +364,11 @@ public class LoadTestController {
 					this.cleanEnvironment();
 				}
 
-			} else if (testCase.is_TERMINATE() && PROD_MODE) {
-				log.info("TERMINATE typology. Terminate all EC2 instances");
-				ec2Client.terminateAllInstances();
+			} else if (testCase.is_TERMINATE()) {
+				if (PROD_MODE) {
+					log.info("TERMINATE typology. Terminate all EC2 instances");
+					ec2Client.terminateAllInstances();
+				}
 			} else {
 				log.error("Test case has wrong typology, SKIPPED.");
 			}

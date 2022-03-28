@@ -53,6 +53,7 @@ public class ElasticSearchClient {
 	public void init() {
 
 		URL url = serializeUrl();
+		if (url == null) return;
 		HttpHost httpHost = new HttpHost(url.getHost(), url.getPort(), url.getProtocol());
 		RestClientBuilder restClientBuilder = RestClient.builder(httpHost);
 		if (url.getPath() != null && !url.getPath().isEmpty()) {
@@ -78,10 +79,12 @@ public class ElasticSearchClient {
 	private URL serializeUrl() {
 		URL url = null;
 		try {
-			url = new URL(loadTestConfig.getElasticsearchHost());
+			String host = loadTestConfig.getElasticsearchHost();
+			if (null != host && !host.isBlank()) {
+				url = new URL(host);
+			}
 		} catch (MalformedURLException e1) {
 			log.error("Property 'ELASTICSEARCH_HOST' is not a valid URI: {}", loadTestConfig.getElasticsearchHost());
-			System.exit(1);
 		}
 		return url;
 	}
@@ -122,6 +125,8 @@ public class ElasticSearchClient {
 //}
 
 	public double getMediaNodeCpu() {
+
+		if (null == this.client) return 0.0;
 
 		SearchRequest searchRequest = new SearchRequest("metricbeat*");
 		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
