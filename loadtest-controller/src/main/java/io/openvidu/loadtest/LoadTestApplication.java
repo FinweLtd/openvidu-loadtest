@@ -43,7 +43,7 @@ public class LoadTestApplication {
 			log.info("Finished");
 		} else {
 			log.error(
-					"Test cases file not found or it is empty. Please, add test_case.json file in resources directory");
+					"Test cases file not found or it is empty. Please, add test_cases.json file in resources directory");
 		}
 	}
 
