@@ -50,3 +50,6 @@ browser-emulator/webrtc-stats-config
 browser-emulator/.awsconfig/
 
 docker/browser-emulator/browser-emulator/
+
+### VS Code ###
+.vscode/
