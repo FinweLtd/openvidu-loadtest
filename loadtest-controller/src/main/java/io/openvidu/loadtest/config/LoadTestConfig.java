@@ -88,6 +88,14 @@ public class LoadTestConfig {
 		return this.openviduUrl;
 	}
 
+	public void setOpenViduUrl(String url) {
+		this.openviduUrl = url;
+
+		System.out.println("-------- Load Test Parameters CHANGED:");
+		String format = "%-25s%3s%n";
+		System.out.printf(format, "OpenVidu URL:", openviduUrl);
+	}
+
 	public String getAwsSecretAccessKey() {
 		return awsSecretAccessKey;
 	}
@@ -98,6 +106,14 @@ public class LoadTestConfig {
 
 	public String getOpenViduSecret() {
 		return this.openviduSecret;
+	}
+
+	public void setOpenViduSecret(String secret) {
+		this.openviduSecret = secret;
+
+		System.out.println("-------- Load Test Parameters CHANGED:");
+		String format = "%-25s%3s%n";
+		System.out.printf(format, "OpenVidu SECRET:", openviduSecret);
 	}
 
 	public String getSessionNamePrefix() {

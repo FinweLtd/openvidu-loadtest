@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
+import io.openvidu.loadtest.config.LoadTestConfig;
 import io.openvidu.loadtest.controller.LoadTestController;
 import io.openvidu.loadtest.models.testcase.TestCase;
 import io.openvidu.loadtest.utils.DataIO;
@@ -28,6 +29,9 @@ public class LoadTestApplication {
 	private LoadTestController loadTestController;
 
 	@Autowired
+	private LoadTestConfig loadTestConfig;
+
+	@Autowired
 	private DataIO io;
 
 	public static void main(String[] args) {
@@ -35,6 +39,15 @@ public class LoadTestApplication {
 	}
 
 	public void start() throws Exception {
+
+		String envOpenViduUrl = System.getenv("OPENVIDU_LOADTEST_OPENVIDU_URL");
+		if (null != envOpenViduUrl && !envOpenViduUrl.isEmpty()) {
+			this.loadTestConfig.setOpenViduUrl(envOpenViduUrl);
+		}
+		String envOpenViduSecret = System.getenv("OPENVIDU_LOADTEST_OPENVIDU_SECRET");
+		if (null != envOpenViduSecret && !envOpenViduSecret.isEmpty()) {
+			this.loadTestConfig.setOpenViduSecret(envOpenViduSecret);
+		}
 
 		List<TestCase> testCasesList = io.getTestCasesFromJSON();
 		if (testCasesList.size() > 0) {
