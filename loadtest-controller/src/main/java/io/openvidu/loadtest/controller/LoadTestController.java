@@ -413,11 +413,11 @@ public class LoadTestController {
 				}
 				boolean isLastParticipant = i == participantsBySession - 1;
 				if (!(isLastParticipant && isLastSession)) {
+					lastResponse = getLastResponse(futureList);
 					boolean areSessionsPerWorkerReached = ((sessionIteration * participantsBySession + i + 1) % browserEstimation) == 0;
 					if (areSessionsPerWorkerReached && (loadTestConfig.getWorkersRumpUp() > 0)) {
 						log.info("Browsers in worker: {} is equal than limit: {}", (sessionIteration * participantsBySession + i + 1),
 								browserEstimation);
-						lastResponse = getLastResponse(futureList);
 						streamsPerWorker.add(lastResponse.getStreamsInWorker());
 						if (!lastResponse.isResponseOk()) {
 							return lastResponse;
@@ -425,6 +425,9 @@ public class LoadTestController {
 						sessionIteration = 0;
 						futureList = new ArrayList<>(browserEstimation);
 						setAndInitializeNextWorker(WorkerType.WORKER);
+					} else if (!lastResponse.isResponseOk()) {
+						log.info("Creating participant failed before configured limits were reached!");
+						return lastResponse;
 					}
 					sleep(loadTestConfig.getSecondsToWaitBetweenParticipants(), "time between participants");
 				} else {

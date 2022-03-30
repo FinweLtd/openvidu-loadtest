@@ -276,15 +276,14 @@ public class BrowserEmulatorClient {
 			return processResponse(response);
 		} catch (Exception e) {
 			//lastResponses.add("Failure");
+			log.error("Error trying to connect with worker on {}: {}", workerUrl, e.getMessage());
 			if (e.getMessage() != null && e.getMessage().contains("Connection timed out")) {
 				sleep(WAIT_MS);
 				return this.createParticipant(currentWorkerType, userNumber, sessionNumber, testCase, role);
 			} else if (e.getMessage() != null && e.getMessage().equalsIgnoreCase("Connection refused")) {
-				log.error("Error trying connect with worker on {}: {}", workerUrl, e.getMessage());
 				sleep(WAIT_MS);
 				return this.createParticipant(currentWorkerType, userNumber, sessionNumber, testCase, role);
 			} else if (e.getMessage() != null && e.getMessage().contains("received no bytes")) {
-				System.out.println(e.getMessage());
 				return cpr.setResponseOk(true);
 			}
 			e.printStackTrace();
