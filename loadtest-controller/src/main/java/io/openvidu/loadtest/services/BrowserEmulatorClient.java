@@ -253,11 +253,11 @@ public class BrowserEmulatorClient {
 				if (testCase.getBrowserMode().equals(BrowserMode.REAL)
 						&& response.body().contains("TimeoutError: Waiting for at least one element to be located")) {
 					String stopReason = "Selenium TimeoutError: Waiting for at least one element to be located on Chrome Browser"
-							+ response.body().substring(0, 100);
+							+ response.body().substring(0, Math.min(100, response.body().length()));
 					return cpr.setResponseOk(false).setStopReason(stopReason);
 				}
 				if (response.body().contains("Exception") || response.body().contains("Error on publishVideo")) {
-					String stopReason = "OpenVidu Error: " + response.body().substring(0, 100);
+					String stopReason = "OpenVidu Error: " + response.body().substring(0, Math.min(100, response.body().length()));
 					return cpr.setResponseOk(false).setStopReason(stopReason);
 				}
 				if (response.body().toString().contains("Gateway Time-out")) {
@@ -340,7 +340,7 @@ public class BrowserEmulatorClient {
 		}
 		log.error("Error. Http Status Response {} ", response.statusCode());
 		log.error("Response message {} ", response.body());
-		String stopReason = response.body().substring(0, 100);
+		String stopReason = response.body().substring(0, Math.min(100, response.body().length()));
 		return cpr.setResponseOk(false).setStopReason(stopReason);
 	}
 
