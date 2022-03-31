@@ -76,6 +76,32 @@ npm install
 npm run start:dev-canvas
 ```
 
+> If you want to use dockerized Chrome browsers instead of emulation, a few additional steps are required. The important ones are listed below (more details in /browser-emulator/EC2-browser-emulator.yml).
+
+- **Create browser-emulator docker image:**
+```bash
+cd docker/browser-emulator/
+./run.sh 2.2.0
+```
+
+- **Pull images:**
+```bash
+docker pull elastestbrowsers/chrome
+docker pull docker.elastic.co/beats/metricbeat-oss:7.12.0
+docker pull kurento/kurento-media-server:latest
+```
+
+> Switch to dockerized Chrome browsers by setting *browserMode* to *REAL* in *test_cases.json* file and run tests via the controller as usual.
+
+- **Troubleshooting:**
+
+If running a test fails because you get EACCES (-13) error from */var/run/docker.sock*, add your Linux user account to *docker* group and then logout/login:
+```bash
+sudo usermod -aG docker $USER
+```
+
+If running a test fails with error similar to this: "WebDriverError: unknown error: net::ERR_CONNECTION_REFUSED\n  (Session info: chrome=95.0.4638.69", then make sure to use the machine's real IP address in *application.properties* file's WORKER_URL_LIST field (not localhost or 127.0.0.1).
+
 <!-- **3. Configure the [required loadtest-controller parameters](#Required-parameters) and the [worker ip address](#Development-mode-parameters-for-testing-locally)**. -->
 
 ##### Running options
