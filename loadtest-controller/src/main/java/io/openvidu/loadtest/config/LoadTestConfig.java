@@ -83,6 +83,8 @@ public class LoadTestConfig {
 	private int retryTimes;
 
 	private boolean qoeAnalysis;
+
+	private String format = "%-25s%3s%n";
 	
 	public String getOpenViduUrl() {
 		return this.openviduUrl;
@@ -92,7 +94,6 @@ public class LoadTestConfig {
 		this.openviduUrl = url;
 
 		System.out.println("-------- Load Test Parameters CHANGED:");
-		String format = "%-25s%3s%n";
 		System.out.printf(format, "OpenVidu URL:", openviduUrl);
 	}
 
@@ -100,8 +101,22 @@ public class LoadTestConfig {
 		return awsSecretAccessKey;
 	}
 
+	public void setAwsSecretAccessKey(String key) {
+		this.awsSecretAccessKey = key;
+
+		System.out.println("-------- Load Test Parameters CHANGED:");
+		System.out.printf(format, "AWS Secret Access Key:", key);
+	}
+
 	public String getAwsAccessKey() {
 		return awsAccessKey;
+	}
+
+	public void setAwsAccessKey(String key) {
+		this.awsAccessKey = key;
+
+		System.out.println("-------- Load Test Parameters CHANGED:");
+		System.out.printf(format, "AWS Access Key:", key);
 	}
 
 	public String getOpenViduSecret() {
@@ -112,7 +127,6 @@ public class LoadTestConfig {
 		this.openviduSecret = secret;
 
 		System.out.println("-------- Load Test Parameters CHANGED:");
-		String format = "%-25s%3s%n";
 		System.out.printf(format, "OpenVidu SECRET:", openviduSecret);
 	}
 
@@ -288,7 +302,6 @@ public class LoadTestConfig {
 	}
 
 	private void printInfo() {
-		String format = "%-25s%3s%n";
 		System.out.println("-------- Load Test Parameters --------");
 		System.out.printf(format, "OpenVidu URL:", openviduUrl);
 		System.out.printf(format, "OpenVidu SECRET:", openviduSecret);
