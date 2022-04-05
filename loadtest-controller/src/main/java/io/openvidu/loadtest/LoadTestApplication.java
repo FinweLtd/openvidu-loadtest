@@ -39,24 +39,6 @@ public class LoadTestApplication {
 	}
 
 	public void start() throws Exception {
-
-		String envOpenViduUrl = System.getenv("OPENVIDU_LOADTEST_OPENVIDU_URL");
-		if (null != envOpenViduUrl && !envOpenViduUrl.isEmpty()) {
-			this.loadTestConfig.setOpenViduUrl(envOpenViduUrl);
-		}
-		String envOpenViduSecret = System.getenv("OPENVIDU_LOADTEST_OPENVIDU_SECRET");
-		if (null != envOpenViduSecret && !envOpenViduSecret.isEmpty()) {
-			this.loadTestConfig.setOpenViduSecret(envOpenViduSecret);
-		}
-		String envAwsAccessKey = System.getenv("OPENVIDU_LOADTEST_AWS_ACCESS_KEY");
-		if (null != envAwsAccessKey && !envAwsAccessKey.isEmpty()) {
-			this.loadTestConfig.setAwsAccessKey(envAwsAccessKey);
-		}
-		String envAwsSecretAccessKey = System.getenv("OPENVIDU_LOADTEST_AWS_SECRET_ACCESS_KEY");
-		if (null != envAwsSecretAccessKey && !envAwsSecretAccessKey.isEmpty()) {
-			this.loadTestConfig.setAwsSecretAccessKey(envAwsSecretAccessKey);
-		}
-
 		List<TestCase> testCasesList = io.getTestCasesFromJSON();
 		if (testCasesList.size() > 0) {
 

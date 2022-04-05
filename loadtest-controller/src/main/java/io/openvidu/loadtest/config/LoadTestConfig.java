@@ -302,6 +302,24 @@ public class LoadTestConfig {
 	}
 
 	private void printInfo() {
+
+		String envOpenViduUrl = System.getenv("OPENVIDU_LOADTEST_OPENVIDU_URL");
+		if (null != envOpenViduUrl && !envOpenViduUrl.isEmpty()) {
+			openviduUrl = envOpenViduUrl;
+		}
+		String envOpenViduSecret = System.getenv("OPENVIDU_LOADTEST_OPENVIDU_SECRET");
+		if (null != envOpenViduSecret && !envOpenViduSecret.isEmpty()) {
+			openviduSecret = envOpenViduSecret;
+		}
+		String envAwsAccessKey = System.getenv("OPENVIDU_LOADTEST_AWS_ACCESS_KEY");
+		if (null != envAwsAccessKey && !envAwsAccessKey.isEmpty()) {
+			awsAccessKey = envAwsAccessKey;
+		}
+		String envAwsSecretAccessKey = System.getenv("OPENVIDU_LOADTEST_AWS_SECRET_ACCESS_KEY");
+		if (null != envAwsSecretAccessKey && !envAwsSecretAccessKey.isEmpty()) {
+			awsSecretAccessKey = envAwsSecretAccessKey;
+		}
+
 		System.out.println("-------- Load Test Parameters --------");
 		System.out.printf(format, "OpenVidu URL:", openviduUrl);
 		System.out.printf(format, "OpenVidu SECRET:", openviduSecret);
