@@ -60,7 +60,7 @@ public class BrowserEmulatorClient {
 			HttpResponse<String> response = this.httpClient
 					.sendGet("https://" + workerUrl + ":" + WORKER_PORT + "/instance/ping", getHeaders());
 			if (response.statusCode() != HTTP_STATUS_OK) {
-				log.error("Error doing ping. Retry...");
+				log.error("Error doing ping: {}. Retry...", response.statusCode());
 				sleep(WAIT_MS);
 				ping(workerUrl);
 			} else {
@@ -68,7 +68,8 @@ public class BrowserEmulatorClient {
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			log.error("Error doing ping. Retry...");
+			log.error("Error doing ping: {}. Retry...", e.getMessage());
+			sleep(WAIT_MS);
 			ping(workerUrl);
 		}
 	}
