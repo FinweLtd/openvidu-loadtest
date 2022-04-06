@@ -48,6 +48,7 @@ public class ElasticSearchClient {
 	private RestHighLevelClient client;
 
 	private static DecimalFormat df2 = new DecimalFormat("#.###");
+	private static DecimalFormat df2comma = new DecimalFormat("#,###");
 
 	@PostConstruct
 	public void init() {
@@ -151,7 +152,14 @@ public class ElasticSearchClient {
 			double cpu = json.get("system").getAsJsonObject().get("cpu").getAsJsonObject().get("total")
 					.getAsJsonObject().get("norm").getAsJsonObject().get("pct").getAsDouble();
 			log.info("Media node CPU is {}", cpu * 100);
-			return Double.parseDouble(df2.format(cpu * 100));
+
+			double parsed = 0.0;
+			try {
+				parsed = Double.parseDouble(df2.format(cpu * 100));
+			} catch (NumberFormatException e) {
+				parsed = Double.parseDouble(df2comma.format(cpu * 100));
+			}
+			return parsed;
 
 		} catch (IOException e) {
 			System.out.println(e);
