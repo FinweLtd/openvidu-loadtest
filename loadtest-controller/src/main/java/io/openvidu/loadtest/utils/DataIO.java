@@ -80,7 +80,7 @@ public class DataIO {
 			boolean showBrowserVideoElements = false;
 			String openviduRecordingModeStr = "";
 			int frameRate = 30;
-			Resolution resolution = Resolution.MEDIUM;
+			Resolution resolution = Resolution.DEFAULT;
 			List<String> participants = new ArrayList<String>();
 			int sessions = 0;
 			BrowserMode browserMode = BrowserMode.EMULATE;
@@ -100,7 +100,21 @@ public class DataIO {
 				}
 				
 				if(element.get("resolution") !=null && !element.get("resolution").getAsString().isBlank()) {
-					resolution = element.get("resolution").getAsString().equalsIgnoreCase(Resolution.HIGH.getValue()) ? Resolution.HIGH : Resolution.MEDIUM;
+					String r = element.get("resolution").getAsString();
+					if (r.equalsIgnoreCase(Resolution.QVGA.getValue())) {
+						resolution = Resolution.QVGA;
+					} else if (r.equalsIgnoreCase(Resolution.VGA.getValue())) {
+						resolution = Resolution.VGA;
+					} else if (r.equalsIgnoreCase(Resolution.HD.getValue())) {
+						resolution = Resolution.HD;
+					} else if (r.equalsIgnoreCase(Resolution.FULLHD.getValue())) {
+						resolution = Resolution.FULLHD;
+					} else if (r.equalsIgnoreCase(Resolution.UHD.getValue())) {
+						resolution = Resolution.UHD;
+					} else {
+						System.out.println("ERROR: Unsupported resolution " + r + ", fallback to default!");
+						resolution = Resolution.DEFAULT;
+					}
 				}
 
 				if(element.get("openviduRecordingMode") != null && !element.get("openviduRecordingMode").getAsString().isBlank()) {

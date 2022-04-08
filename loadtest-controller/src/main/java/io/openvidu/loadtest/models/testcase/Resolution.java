@@ -1,14 +1,13 @@
 package io.openvidu.loadtest.models.testcase;
 
 public enum Resolution {
-	
-	HIGH("1280x720", "1280x720"),
 
-	MEDIUM("640x480", "640x480"),
-
-	FULLHIGH("1920x1080", "1920x1080");
-
-//	LOW("320x240", "320x240");
+	DEFAULT("640x480", "640x480"),
+	QVGA("320x240", "320x240"),
+	VGA("640x480", "640x480"),
+	HD("1280x720", "1280x720"),
+	FULLHD("1920x1080", "1920x1080"),
+	UHD("1920x1080", "1920x1080");
 
 	private String label;
 	private String value;

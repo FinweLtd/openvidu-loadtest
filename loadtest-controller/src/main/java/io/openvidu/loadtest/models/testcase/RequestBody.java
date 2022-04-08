@@ -19,7 +19,7 @@ public class RequestBody {
 	private OpenViduRole role = OpenViduRole.PUBLISHER;
 	private boolean audio = true;
 	private boolean video = true;
-	private Resolution resolution = Resolution.MEDIUM;
+	private Resolution resolution = Resolution.DEFAULT;
 	private OpenViduRecordingMode openviduRecordingMode;
 	private int frameRate = 30;
 	private boolean browserRecording = false;
