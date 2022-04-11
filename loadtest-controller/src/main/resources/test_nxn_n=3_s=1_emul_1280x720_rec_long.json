@@ -1,0 +1,18 @@
+{
+	"testcases": [
+		{
+			"typology": "N:N",
+			"participants": ["3"],
+			"sessions": "1",
+			"browserMode": "EMULATE",
+			"resolution": "1280x720",
+			"recording": true,
+			"headless": false,
+			"desciption": "This test case will create one session with 3 test clients. One human user joins with simulated bad network connection."
+		},
+		{
+			"typology": "TERMINATE",
+			"desciption": "This terminate all Ec2 instances"
+		}
+	]
+}
