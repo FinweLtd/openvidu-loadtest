@@ -202,7 +202,9 @@ OpenVidu Load Test control application needs to know the access keys for your AW
 
 3. Find *AWS_SECRET_ACCESS_KEY* property and replace its value (copy-paste) with your AWS secret access key.
 
-4. Save & exit.
+4. Find *S3_BUCKET_NAME* property and replace its value with a unique bucket name of your choice. If you try to use the default one, an error will be shown during a test run, as OpenVidu Load Test tries to create the bucket and the default name is already reserved (AWS S3 bucket names are shared globally).
+
+5. Save & exit.
 
 > Tip: Check that property *WORKER_MAX_LOAD* is set to 90 or something clearly below 100. Browser estimation phase tends to fail with value 100, as measured CPU load may not reach 100% even when the VM is already on its knees under the load and stops responding in time.
 
