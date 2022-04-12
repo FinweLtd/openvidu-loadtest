@@ -276,8 +276,8 @@ public class RequestBody {
 		if (this.openviduRecordingMode != null && !this.openviduRecordingMode.getValue().isEmpty()) {
 			properties.addProperty("recordingOutputMode", this.openviduRecordingMode.getValue());
 		}
+		properties.addProperty("recording", this.browserRecording);
 		if (this.browserMode.getValue().equals(BrowserMode.REAL.getValue())) {
-			properties.addProperty("recording", this.browserRecording);
 			properties.addProperty("showVideoElements", this.showVideoElements);
 			properties.addProperty("headless", this.headlessBrowser);
 		}
