@@ -27,15 +27,15 @@ import io.openvidu.loadtest.models.testcase.Typology;
 public class DataIO {
 
 	private static ClassLoader classLoader = DataIO.class.getClassLoader();
-	private static final String TEST_CASES_JSON_FILE = "test_cases.json";
+	public static final String DEFAULT_TEST_CASES_JSON_FILE = "test_cases.json";
 	private static final String REPORT_FILE_RESULT = "results.txt";
 
 
 	@Autowired
 	private JsonUtils jsonUtils;
 
-	public List<TestCase> getTestCasesFromJSON() {
-		File file = new File(classLoader.getResource(TEST_CASES_JSON_FILE).getFile());
+	public List<TestCase> getTestCasesFromJSON(String testCaseFilePath) {
+		File file = new File(classLoader.getResource(testCaseFilePath).getFile());
 		JsonArray testCasesList = new JsonArray();
 
 		try {
