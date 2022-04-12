@@ -7,6 +7,8 @@
 			"browserMode": "EMULATE",
 			"resolution": "640x480",
 			"recording": true,
+			"browserRecording": true,
+			"openviduRecordingMode": "individual",
 			"headless": false,
 			"desciption": "This test case will create one session with 3 test clients. One human user joins with simulated bad network connection."
 		},
