@@ -5,7 +5,10 @@
 			"participants": ["3"],
 			"sessions": "1",
 			"browserMode": "EMULATE",
-			"resolution": "3840x2160",
+			"resolution": "1920x1080",
+			"frameRate": "24",
+			"bitRate": "2500000",
+			"videoFilename": "openvidu_loadtest_talkinghead_vp8_opus_{resolution}_{fps}fps_{bitrate}bps.mkv",
 			"recording": true,
 			"headless": false,
 			"desciption": "This test case will create one session with 3 test clients. One human user joins with simulated bad network connection."
