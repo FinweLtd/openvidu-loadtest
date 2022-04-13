@@ -106,7 +106,7 @@ public class TestCase {
 	}
 
 	public boolean isBrowserRecording() {
-		return browserRecording; // && this.browserMode.equals(BrowserMode.REAL);
+		return browserRecording && this.browserMode.equals(BrowserMode.REAL);
 	}
 
 	public void setBrowserRecording(boolean browserRecording) {
