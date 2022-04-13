@@ -136,6 +136,8 @@ export class BrowserManagerService {
 			`Video: ${req.properties.video} \n` +
 			`Frame Rate: ${req.properties.frameRate} \n` +
 			`Resolution: ${req.properties.resolution} \n` +
+			`Bitrate: ${req.properties.bitRate} \n` +
+			`Video file: ${req.properties.videoFilename} \n` +
 			`OpenVidu Recording: ${req.properties.recordingOutputMode} \n` +
 			`Recording Browser: ${req.properties.recording} \n` +
 			`Headless Browser: ${req.properties.headless} \n`;

@@ -359,6 +359,8 @@ public class BrowserEmulatorClient {
 				.browserMode(testCase.getBrowserMode())
 				.resolution(testCase.getResolution())
 				.frameRate(testCase.getFrameRate())
+				.bitRate(testCase.getBitRate())
+				.videoFilename(testCase.getVideoFilename())
 				.userId(this.loadTestConfig.getUserNamePrefix() + userNumber)
 				.sessionName(this.loadTestConfig.getSessionNamePrefix() + sessionNumber)
 				.audio(true)

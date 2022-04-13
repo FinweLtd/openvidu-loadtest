@@ -80,6 +80,8 @@ public class DataIO {
 			boolean showBrowserVideoElements = false;
 			String openviduRecordingModeStr = "";
 			int frameRate = 30;
+			int bitRate = 1000000;
+			String videoFilename = "video_{resolution}.mkv";
 			Resolution resolution = Resolution.DEFAULT;
 			List<String> participants = new ArrayList<String>();
 			int sessions = 0;
@@ -97,6 +99,14 @@ public class DataIO {
 
 				if(element.get("frameRate") !=null && !element.get("frameRate").getAsString().isBlank()) {
 					frameRate = element.get("frameRate").getAsInt();
+				}
+
+				if(element.get("bitRate") !=null && !element.get("bitRate").getAsString().isBlank()) {
+					bitRate = element.get("bitRate").getAsInt();
+				}
+
+				if(element.get("videoFilename") !=null && !element.get("videoFilename").getAsString().isBlank()) {
+					videoFilename = element.get("videoFilename").getAsString();
 				}
 				
 				if(element.get("resolution") !=null && !element.get("resolution").getAsString().isBlank()) {
@@ -140,8 +150,8 @@ public class DataIO {
 				}
 			}
 
-			testCaseList.add(new TestCase(typology, participants, sessions, browserMode, frameRate, resolution, openviduRecordingMode,
-					headlessBrowser, browserRecording, showBrowserVideoElements));
+			testCaseList.add(new TestCase(typology, participants, sessions, browserMode, frameRate, bitRate, videoFilename, 
+					resolution, openviduRecordingMode, headlessBrowser, browserRecording, showBrowserVideoElements));
 		}
 
 		return testCaseList;

@@ -2,6 +2,7 @@ import { ConnectionEvent, OpenVidu, Publisher, Session, SessionDisconnectedEvent
 import { HttpClient } from '../utils/http-client';
 import { OpenViduRole } from '../types/openvidu.type';
 import { TestProperties } from '../types/api-rest.type';
+import { VideoFilenamePattern } from '../types/config.type';
 
 import { MediaStreamTrack } from 'wrtc';
 
@@ -208,7 +209,11 @@ export class EmulateBrowserService {
 		let audioTrack: MediaStreamTrack | boolean = properties.audio;
 
 		if (this.isUsingKms()) {
-			await KurentoWebRTC.setPlayerEndpointPath(`${this.KMS_MEDIAFILES_PATH}/video_${properties.resolution}.mkv`);
+			let fname = properties.videoFilename;
+			fname = fname.replace(VideoFilenamePattern.RESOLUTION, properties.resolution);
+			fname = fname.replace(VideoFilenamePattern.FPS, properties.frameRate.toString());
+			fname = fname.replace(VideoFilenamePattern.BITRATE, properties.bitRate.toString());
+			await KurentoWebRTC.setPlayerEndpointPath(`${this.KMS_MEDIAFILES_PATH}/` + fname);
 			KurentoWebRTC.setRecorderEndpointPrefix(
 				`${this.KMS_RECORDINGS_PATH}/kms_${properties.recordingMetadata}_${properties.sessionName}_${new Date().getTime()}`
 			);

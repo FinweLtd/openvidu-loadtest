@@ -22,6 +22,8 @@ public class RequestBody {
 	private Resolution resolution = Resolution.DEFAULT;
 	private OpenViduRecordingMode openviduRecordingMode;
 	private int frameRate = 30;
+	private int bitRate = 1000000; // 1 Mbps
+	private String videoFilename = "video_{resolution}.mkv";
 	private boolean browserRecording = false;
 	private boolean showVideoElements = true;
 	private boolean headlessBrowser = false;
@@ -106,6 +108,14 @@ public class RequestBody {
 
 	public int getFrameRate() {
 		return frameRate;
+	}
+
+	public int getBitRate() {
+		return bitRate;
+	}
+
+	public String getVideoFilename() {
+		return videoFilename;
 	}
 
 	public boolean isBrowserRecording() {
@@ -217,6 +227,18 @@ public class RequestBody {
 		return this;
 	}
 
+	public RequestBody bitRate(int bitRate) {
+		if (bitRate > 0) {
+			this.bitRate = bitRate;
+		}
+		return this;
+	}
+
+	public RequestBody videoFilename(String videoFilename) {
+		this.videoFilename = videoFilename;
+		return this;
+	}
+
 	public RequestBody browserRecording(boolean browserRecording) {
 		this.browserRecording = browserRecording;
 		return this;
@@ -244,7 +266,7 @@ public class RequestBody {
 
 	public RequestBody build() {
 		return new RequestBody(openviduUrl, openviduSecret, elasticSearchHost, elasticSearchUserName, elasticSearchPassword, elasticSearchIndex, awsAccessKey, awsSecretAccessKey, browserMode, userId, sessionName, token, role, audio, video,
-				resolution, openviduRecordingMode, frameRate, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysis);
+				resolution, openviduRecordingMode, frameRate, bitRate, videoFilename, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysis);
 	}
 
 	public JsonObject toJson() {
@@ -268,7 +290,9 @@ public class RequestBody {
 		properties.addProperty("video", this.video);
 		properties.addProperty("resolution", this.resolution.getValue());
 		properties.addProperty("frameRate", this.frameRate);
-		
+		properties.addProperty("bitRate", this.bitRate);
+		properties.addProperty("videoFilename", this.videoFilename);
+	
 		
 		if (!token.isEmpty()) {
 			properties.addProperty("token", this.token);
@@ -292,7 +316,7 @@ public class RequestBody {
 
 	private RequestBody(String openviduUrl, String openviduSecret, String elasticSearchHost, String elasticSearchUserName, String elasticSearchPassword, String elasticSearchIndex, String awsAccessKey, String awsSecretAccessKey, BrowserMode browserMode, String userId,
 			String sessionName, String token, OpenViduRole role, boolean audio, boolean video, Resolution resolution,
-			OpenViduRecordingMode openviduRecordingMode, int frameRate, boolean browserRecording,
+			OpenViduRecordingMode openviduRecordingMode, int frameRate, int bitRate, String videoFilename, boolean browserRecording,
 			boolean showVideoElements, boolean headlessBrowser, String recordingMetadata, String s3BucketName, boolean qoeAnalysis) {
 		super();
 		this.openviduUrl = openviduUrl;
@@ -313,6 +337,8 @@ public class RequestBody {
 		this.resolution = resolution;
 		this.openviduRecordingMode = openviduRecordingMode;
 		this.frameRate = frameRate;
+		this.bitRate = bitRate;
+		this.videoFilename = videoFilename;
 		this.browserRecording = browserRecording;
 		this.showVideoElements = showVideoElements;
 		this.headlessBrowser = headlessBrowser;

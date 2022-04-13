@@ -22,3 +22,9 @@ export enum ApplicationMode {
 	PROD = 'PRODUCTION',
 	DEV = 'DEVELOPMENT'
 }
+
+export enum VideoFilenamePattern {
+	RESOLUTION = '{resolution}',
+	FPS = '{fps}',
+	BITRATE = '{bitrate}'
+}

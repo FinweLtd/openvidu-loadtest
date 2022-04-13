@@ -10,21 +10,25 @@ public class TestCase {
 	private BrowserMode browserMode;
 	private Resolution resolution;
 	private int frameRate;
+	private int bitRate;
+	private String videoFilename;
 	private OpenViduRecordingMode openviduRecordingMode;
 	private boolean browserRecording = false;
 	private boolean headlessBrowser = false;
 	private boolean showBrowserVideoElements = true;
 	private String recordingMetadata = "";
 
-	public TestCase(String typology, List<String> participants, int sessions, BrowserMode browserMode, int frameRate, Resolution resolution,
-			OpenViduRecordingMode openviduRecordingMode, boolean headlessBrowser, boolean browserRecording,
-			boolean showBrowserVideoElements) {
+	public TestCase(String typology, List<String> participants, int sessions, BrowserMode browserMode, int frameRate, 
+			int bitRate, String videoFilename, Resolution resolution, OpenViduRecordingMode openviduRecordingMode, 
+			boolean headlessBrowser, boolean browserRecording, boolean showBrowserVideoElements) {
 		this.typology = getTypology(typology);
 		this.participants = participants;
 		this.sessions = sessions;
 		this.browserMode = browserMode;
 		this.resolution = resolution;
 		this.frameRate = frameRate;
+		this.bitRate = bitRate;
+		this.videoFilename = videoFilename;
 		this.openviduRecordingMode = openviduRecordingMode;
 		this.browserRecording = browserRecording;
 		this.headlessBrowser = headlessBrowser;
@@ -38,6 +42,8 @@ public class TestCase {
 		this.browserMode = testCase.browserMode;
 		this.resolution = testCase.resolution;
 		this.frameRate = testCase.frameRate;
+		this.bitRate = testCase.bitRate;
+		this.videoFilename = testCase.videoFilename;
 		this.openviduRecordingMode = testCase.openviduRecordingMode;
 		this.browserRecording = testCase.browserRecording;
 		this.headlessBrowser = testCase.headlessBrowser;
@@ -105,6 +111,14 @@ public class TestCase {
 		return frameRate;
 	}
 
+	public int getBitRate() {
+		return bitRate;
+	}
+
+	public String getVideoFilename() {
+		return videoFilename;
+	}
+
 	public boolean isBrowserRecording() {
 		return browserRecording && this.browserMode.equals(BrowserMode.REAL);
 	}
@@ -140,6 +154,8 @@ public class TestCase {
 				+ " | Browser mode: " + browserMode 
 				+ " | Resolution: " + resolution.getValue() 
 				+ " | Frame rate: " + frameRate 
+				+ " | Bit rate: " + bitRate 
+				+ " | Video filename: " + videoFilename
 				+ " | Headless browser: " + isHeadlessBrowser() 
 				+ " | Browser recording: " + isBrowserRecording()
 				+ " | Browser show video elements: " + isShowBrowserVideoElements();

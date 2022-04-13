@@ -50,6 +50,8 @@ export interface TestProperties {
 	resolution: Resolution;
 	recordingOutputMode?: RecordingOutputMode;
 	frameRate: number;
+    bitRate: number;
+    videoFilename: string;
 	// Only with BrowserMode=REAL;
 	recording?: boolean;
 	showVideoElements?: boolean;
