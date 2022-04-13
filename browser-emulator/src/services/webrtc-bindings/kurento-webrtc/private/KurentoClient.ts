@@ -66,10 +66,11 @@ export async function setPlayerEndpointPath(videoUri: string) {
 
 		kurento.player.on('Error', (event: any): void => {
 			console.error(
-				'[KurentoClient] PlayerEndpoint ERROR %d (%s): %s',
+				'[KurentoClient] PlayerEndpoint ERROR %d (%s): %s: %s',
 				event.errorCode,
 				event.type,
-				event.description
+				event.description,
+				videoUri
 			);
 		});
 
