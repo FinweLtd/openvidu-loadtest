@@ -7,7 +7,7 @@ public enum Resolution {
 	VGA("640x480", "640x480"),
 	HD("1280x720", "1280x720"),
 	FULLHD("1920x1080", "1920x1080"),
-	UHD("1920x1080", "1920x1080");
+	UHD("3840x2160", "3840x2160");
 
 	private String label;
 	private String value;
