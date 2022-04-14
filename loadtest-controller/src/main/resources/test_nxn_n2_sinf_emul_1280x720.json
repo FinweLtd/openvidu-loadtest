@@ -6,6 +6,10 @@
 			"sessions": "infinite",
 			"browserMode": "EMULATE",
 			"resolution": "1280x720",
+			"frameRate": "24",
+			"bitRate": "1500000",
+			"videoFilename": "openvidu_loadtest_talkinghead_vp8_opus_{resolution}_{fps}fps_{bitrate}bps.mkv",
+
 			"recording": false,
 			"headless": false,
 			"desciption": "This test case will add infinite sessions (until it reaches its limit) of publishers that the array of participants indicates"
