@@ -82,8 +82,27 @@ export interface JSONStreamsInfo {
 	'@timestamp': string,
 	streams: number,
 	worker_name: string
-    node_role: string
+    node_role: string,
+    new_participant_id: string,
+    new_participant_session: string
 
+}
+
+export interface JSONQoEInfo {
+    '@timestamp': string,
+    session: string,
+    userFrom: string,
+    userTo: string,
+    cutIndex: number,
+    vmaf: number,
+    vifp: number,
+    ssim: number,
+    psnr: number,
+    msssim: number,
+    psnrhvs: number,
+    psnrhvsm: number,
+    pesq: number,
+    visqol: number
 }
 
 interface IWebrtcStats {
