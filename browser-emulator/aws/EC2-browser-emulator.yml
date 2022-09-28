@@ -12,7 +12,7 @@ Resources:
     Type: AWS::EC2::Instance
     CreationPolicy:
       ResourceSignal:
-        Timeout: PT45M
+        Timeout: PT1H
         Count: 1
     Properties:
       ImageId: !Ref ImageId
@@ -21,7 +21,6 @@ Resources:
       - Key: Name
         Value: !Ref AWS::StackName
     # Add KeyName: [your ssh key] to be able to access this instance
-      KeyName: ivan-aws-virginia
       BlockDeviceMappings:
       - DeviceName: "/dev/sda1"
         Ebs:
@@ -67,9 +66,6 @@ Resources:
 
           cd /opt/openvidu-loadtest/
 
-          # Download media files
-          ./browser-emulator/download_mediafiles.sh
-
           # Create browser-emulator docker image
           cd docker/browser-emulator/
           ./run.sh 2.2.0
@@ -84,7 +80,7 @@ Resources:
           mkdir -p ../../browser-emulator/recordings/chrome
           mkdir -p ../../browser-emulator/recordings/qoe
 
-          echo '@reboot docker run -d -it --network host -v /var/run/docker.sock:/var/run/docker.sock -v /opt/openvidu-loadtest/browser-emulator/recordings:/opt/openvidu-loadtest/browser-emulator/recordings -v /opt/openvidu-loadtest/browser-emulator/src/assets/mediafiles:/opt/openvidu-loadtest/browser-emulator/src/assets/mediafiles openvidu/browser-emulator:2.2.0 > /var/log/crontab.log' | crontab
+          echo '@reboot docker run -d -it --network host --shm-size=2.5gb -v /var/run/docker.sock:/var/run/docker.sock -v /opt/openvidu-loadtest/browser-emulator/recordings:/opt/openvidu-loadtest/browser-emulator/recordings -v /opt/openvidu-loadtest/browser-emulator/src/assets/mediafiles:/opt/openvidu-loadtest/browser-emulator/src/assets/mediafiles openvidu/browser-emulator:2.2.0 > /var/log/crontab.log' | crontab
 
           # sending the finish call
           /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BrowserInstance --region ${AWS::Region}

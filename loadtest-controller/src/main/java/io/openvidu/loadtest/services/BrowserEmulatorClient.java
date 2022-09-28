@@ -12,12 +12,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.ec2.model.Instance;
 import com.google.gson.JsonObject;
 
 import io.openvidu.loadtest.config.LoadTestConfig;
@@ -51,9 +53,6 @@ public class BrowserEmulatorClient {
 	@Autowired
 	private JsonUtils jsonUtils;
 
-	@Autowired
-	private CurrentWorkerService currentWorkers;
-
 	public void ping(String workerUrl) {
 		try {
 			log.info("Pinging to {} ...", workerUrl);
@@ -82,7 +81,14 @@ public class BrowserEmulatorClient {
 				.awsAccessKey(this.loadTestConfig.getAwsAccessKey())
 				.awsSecretAccessKey(this.loadTestConfig.getAwsSecretAccessKey())
 				.s3BucketName(loadTestConfig.getS3BucketName())
-				.qoeAnalysis(loadTestConfig.isQoeAnalysis()).build().toJson();
+				.videoType(loadTestConfig.getVideoType())
+				.videoHeight(loadTestConfig.getVideoHeight())
+				.videoWidth(loadTestConfig.getVideoWidth())
+				.videoFps(loadTestConfig.getVideoFps())
+				.videoUrl(loadTestConfig.getVideoUrl())
+				.audioUrl(loadTestConfig.getAudioUrl())
+				.qoeAnalysis(loadTestConfig.isQoeAnalysisRecordings(), loadTestConfig.getPaddingDuration(), loadTestConfig.getFragmentDuration())
+				.build().toJson();
 		try {
 			log.info("Initialize worker {}", workerUrl);
 			return this.httpClient.sendPost("https://" + workerUrl + ":" + WORKER_PORT + "/instance/initialize", body,
@@ -98,83 +104,89 @@ public class BrowserEmulatorClient {
 		return null;
 	}
 
-//	public void initializeInstances() {
-//		ExecutorService executorService = Executors.newFixedThreadPool(workerUrlList.size());
-//		List<Callable<HttpResponse<String>>> callableTasks = new ArrayList<>();
-//
-//		for (String workerUrl : workerUrlList) {
-//
-//			Callable<HttpResponse<String>> callableTask = () -> {
-//				return this.initializeInstance(workerUrl);
-//			};
-//			callableTasks.add(callableTask);
-//		}
-//		try {
-//			//TODO: Refactoring callable task in an external class
-//			List<Future<HttpResponse<String>>> futures = executorService.invokeAll(callableTasks);
-//			futures.forEach((future) -> {
-//				try {
-//					HttpResponse<String> response = future.get();
-//					if(response != null && response.statusCode() != HTTP_STATUS_OK) {
-//						log.error("Error initializing worker {}", response.uri());
-//					}
-//				} catch (InterruptedException | ExecutionException e) {
-//					e.printStackTrace();
-//				}
-//			});
-//			executorService.shutdown();
-//		} catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//	}
+	// public void initializeInstances() {
+	// ExecutorService executorService =
+	// Executors.newFixedThreadPool(workerUrlList.size());
+	// List<Callable<HttpResponse<String>>> callableTasks = new ArrayList<>();
+	//
+	// for (String workerUrl : workerUrlList) {
+	//
+	// Callable<HttpResponse<String>> callableTask = () -> {
+	// return this.initializeInstance(workerUrl);
+	// };
+	// callableTasks.add(callableTask);
+	// }
+	// try {
+	// //TODO: Refactoring callable task in an external class
+	// List<Future<HttpResponse<String>>> futures =
+	// executorService.invokeAll(callableTasks);
+	// futures.forEach((future) -> {
+	// try {
+	// HttpResponse<String> response = future.get();
+	// if(response != null && response.statusCode() != HTTP_STATUS_OK) {
+	// log.error("Error initializing worker {}", response.uri());
+	// }
+	// } catch (InterruptedException | ExecutionException e) {
+	// e.printStackTrace();
+	// }
+	// });
+	// executorService.shutdown();
+	// } catch (InterruptedException e) {
+	// e.printStackTrace();
+	// }
+	// }
 
-	public CreateParticipantResponse createPublisher(int userNumber, int sessionNumber, TestCase testCase) {
-		return createPublisher(userNumber, sessionNumber, testCase, 0);
+	public CreateParticipantResponse createPublisher(String worker, int userNumber, int sessionNumber, TestCase testCase) {
+		return createPublisher(worker, userNumber, sessionNumber, testCase, 0);
 	}
 
-	private CreateParticipantResponse createPublisher(int userNumber, int sessionNumber, TestCase testCase, int failures) {
+	private CreateParticipantResponse createPublisher(String worker, int userNumber, int sessionNumber, TestCase testCase,
+			int failures) {
 		TestCase finalTestCase = testCase;
 		if (testCase.isBrowserRecording()) {
 			finalTestCase = new TestCase(testCase);
 			finalTestCase.setBrowserRecording(false);
 		}
-		CreateParticipantResponse success = this.createParticipant(WorkerType.WORKER, userNumber, sessionNumber, finalTestCase,
+		CreateParticipantResponse success = this.createParticipant(worker, userNumber, sessionNumber,
+				finalTestCase,
 				OpenViduRole.PUBLISHER);
 
 		if (!success.isResponseOk() && loadTestConfig.isRetryMode() && !isResponseLimitReached(failures)) {
-			return this.createPublisher(userNumber, sessionNumber, testCase, failures + 1);
+			return this.createPublisher(worker, userNumber, sessionNumber, testCase, failures + 1);
 		}
 		return success;
 	}
 
-	public CreateParticipantResponse createSubscriber(int userNumber, int sessionNumber, TestCase testCase) {
-		return createSubscriber(userNumber, sessionNumber, testCase, 0);
+	public CreateParticipantResponse createSubscriber(String worker, int userNumber, int sessionNumber, TestCase testCase) {
+		return createSubscriber(worker, userNumber, sessionNumber, testCase, 0);
 	}
 
-	private CreateParticipantResponse createSubscriber(int userNumber, int sessionNumber, TestCase testCase, int failures) {
+	private CreateParticipantResponse createSubscriber(String worker, int userNumber, int sessionNumber, TestCase testCase,
+			int failures) {
 		TestCase finalTestCase = testCase;
 		if (testCase.isBrowserRecording()) {
 			finalTestCase = new TestCase(testCase);
 			finalTestCase.setBrowserRecording(false);
 		}
 		OpenViduRole role = OpenViduRole.SUBSCRIBER;
-		CreateParticipantResponse success = this.createParticipant(WorkerType.WORKER, userNumber, sessionNumber, finalTestCase, role);
+		CreateParticipantResponse success = this.createParticipant(worker, userNumber, sessionNumber,
+				finalTestCase, role);
 
 		if (!success.isResponseOk() && loadTestConfig.isRetryMode() && !isResponseLimitReached(failures)) {
-			return this.createSubscriber(userNumber, sessionNumber, testCase, failures + 1);
+			return this.createSubscriber(worker, userNumber, sessionNumber, testCase, failures + 1);
 		}
 		return success;
 	}
 
-	public CreateParticipantResponse createExternalRecordingPublisher(int userNumber, int sessionNumber,
+	public CreateParticipantResponse createExternalRecordingPublisher(String worker, int userNumber, int sessionNumber,
 			TestCase testCase, String recordingMetadata) {
-		return this.createExternalRecordingParticipant(userNumber, sessionNumber, testCase,
+		return this.createExternalRecordingParticipant(worker, userNumber, sessionNumber, testCase,
 				recordingMetadata, OpenViduRole.PUBLISHER);
 	}
 
-	public CreateParticipantResponse createExternalRecordingSubscriber(int userNumber, int sessionNumber,
+	public CreateParticipantResponse createExternalRecordingSubscriber(String worker, int userNumber, int sessionNumber,
 			TestCase testCase, String recordingMetadata) {
-		return this.createExternalRecordingParticipant(userNumber, sessionNumber, testCase,
+		return this.createExternalRecordingParticipant(worker, userNumber, sessionNumber, testCase,
 				recordingMetadata, OpenViduRole.SUBSCRIBER);
 	}
 
@@ -224,7 +236,8 @@ public class BrowserEmulatorClient {
 		}
 	}
 
-	private CreateParticipantResponse createParticipant(WorkerType currentWorkerType, int userNumber, int sessionNumber, TestCase testCase,
+	private CreateParticipantResponse createParticipant(String workerUrl, int userNumber, int sessionNumber,
+			TestCase testCase,
 			OpenViduRole role) {
 		CreateParticipantResponse cpr = new CreateParticipantResponse();
 		int failures = 0;
@@ -239,7 +252,6 @@ public class BrowserEmulatorClient {
 
 		String sessionSuffix = String.valueOf(sessionNumber);
 		RequestBody body = this.generateRequestBody(userNumber, sessionSuffix, role, testCase);
-		String workerUrl = currentWorkers.getCurrentWorkerUrl(currentWorkerType);
 		try {
 			log.info("Selected worker: {}", workerUrl);
 			log.info("Creating participant {} in session {}", userNumber, sessionSuffix);
@@ -270,21 +282,22 @@ public class BrowserEmulatorClient {
 				if (loadTestConfig.isRetryMode() && isResponseLimitReached(failures)) {
 					return cpr.setResponseOk(false);
 				}
-				return this.createParticipant(currentWorkerType, userNumber, sessionNumber, testCase, role);
+				return this.createParticipant(workerUrl, userNumber, sessionNumber, testCase, role);
 			} else {
 				this.saveParticipantData(workerUrl, testCase.is_TEACHING() ? OpenViduRole.PUBLISHER : role);
 			}
 			return processResponse(response);
 		} catch (Exception e) {
-			//lastResponses.add("Failure");
-			log.error("Error trying to connect with worker on {}: {}", workerUrl, e.getMessage());
+			// lastResponses.add("Failure");
 			if (e.getMessage() != null && e.getMessage().contains("Connection timed out")) {
 				sleep(WAIT_MS);
-				return this.createParticipant(currentWorkerType, userNumber, sessionNumber, testCase, role);
+				return this.createParticipant(workerUrl, userNumber, sessionNumber, testCase, role);
 			} else if (e.getMessage() != null && e.getMessage().equalsIgnoreCase("Connection refused")) {
+				log.error("Error trying connect with worker on {}: {}", workerUrl, e.getMessage());
 				sleep(WAIT_MS);
-				return this.createParticipant(currentWorkerType, userNumber, sessionNumber, testCase, role);
+				return this.createParticipant(workerUrl, userNumber, sessionNumber, testCase, role);
 			} else if (e.getMessage() != null && e.getMessage().contains("received no bytes")) {
+				System.out.println(e.getMessage());
 				return cpr.setResponseOk(true);
 			}
 			e.printStackTrace();
@@ -294,7 +307,7 @@ public class BrowserEmulatorClient {
 	}
 
 	private void saveParticipantData(String workerUrl, OpenViduRole role) {
-		int[] initialArray = {0, 0};
+		int[] initialArray = { 0, 0 };
 		BrowserEmulatorClient.publishersAndSubscribersInWorker.putIfAbsent(workerUrl, initialArray);
 		int[] list = BrowserEmulatorClient.publishersAndSubscribersInWorker.get(workerUrl);
 		if (role.equals(OpenViduRole.PUBLISHER)) {
@@ -304,7 +317,7 @@ public class BrowserEmulatorClient {
 		}
 	}
 
-	private CreateParticipantResponse createExternalRecordingParticipant(int userNumber, int sessionNumber,
+	private CreateParticipantResponse createExternalRecordingParticipant(String worker, int userNumber, int sessionNumber,
 			TestCase testCase, String recordingMetadata, OpenViduRole role) {
 
 		TestCase testCaseAux = new TestCase(testCase);
@@ -312,7 +325,8 @@ public class BrowserEmulatorClient {
 		testCaseAux.setBrowserRecording(true);
 		testCaseAux.setRecordingMetadata(recordingMetadata);
 		log.info("Creating a participant using a REAL BROWSER for recoding");
-		CreateParticipantResponse okResponse = this.createParticipant(WorkerType.RECORDING_WORKER, userNumber, sessionNumber, testCaseAux, role);
+		CreateParticipantResponse okResponse = this.createParticipant(worker, userNumber,
+				sessionNumber, testCaseAux, role);
 		if (okResponse.isResponseOk()) {
 			recordingParticipantCreated.add(sessionNumber);
 		}
@@ -389,11 +403,72 @@ public class BrowserEmulatorClient {
 		}
 	}
 
-	public int getRoleInWorker(WorkerType currentWorkerType, OpenViduRole role) {
+	public int getRoleInWorker(String workerUrl, OpenViduRole role) {
 		Integer idx = role.equals(OpenViduRole.PUBLISHER) ? 0 : 1;
-		int[] initialArray = {0, 0};
-		BrowserEmulatorClient.publishersAndSubscribersInWorker.putIfAbsent(currentWorkers.getCurrentWorkerUrl(currentWorkerType), initialArray);
-		return BrowserEmulatorClient.publishersAndSubscribersInWorker.get(currentWorkers.getCurrentWorkerUrl(currentWorkerType))[idx];
+		int[] initialArray = { 0, 0 };
+		BrowserEmulatorClient.publishersAndSubscribersInWorker
+				.putIfAbsent(workerUrl, initialArray);
+		return BrowserEmulatorClient.publishersAndSubscribersInWorker
+				.get(workerUrl)[idx];
 	}
 
+	public void calculateQoe(List<Instance> workersList) {
+		ExecutorService executorService = Executors.newFixedThreadPool(workersList.size());
+		List<String> workerUrlsList = workersList.stream().map(Instance::getPublicDnsName).collect(Collectors.toList());
+		List<Callable<String>> callableTasks = new ArrayList<>();
+		try {
+			for (String workerUrl : workerUrlsList) {
+				Callable<String> callable = new Callable<String>() {
+					@Override
+					public String call() throws Exception {
+						return httpClient.sendPost(
+								"https://" + workerUrl + ":" + WORKER_PORT + "/qoe/analysis", null, null,
+								getHeaders()).body();
+					}
+				};
+				callableTasks.add(callable);
+			}
+			List<Future<String>> futures = executorService.invokeAll(callableTasks);
+			List<Integer> remainingFilesList = new ArrayList<>(futures.size());
+			for (Future<String> future : futures) {
+				String response = future.get();
+				JsonObject jsonResponse = jsonUtils.getJson(response);
+				int remainingFiles = jsonResponse.get("remainingFiles").getAsInt();
+				remainingFilesList.add(remainingFiles);
+			}
+			log.info("Waiting for all workers to finish QoE analysis (list of remaining files): {}", remainingFilesList);
+			boolean allDone = false;
+			while (!allDone) {
+				allDone = true;
+				List<Callable<String>> statusCallableTasks = new ArrayList<>();
+				for (String workerUrl : workerUrlsList) {
+					Callable<String> callable = new Callable<String>() {
+						@Override
+						public String call() throws Exception {
+							return httpClient.sendGet(
+									"https://" + workerUrl + ":" + WORKER_PORT + "/qoe/analysis/status", getHeaders()).body();
+						}
+					};
+					statusCallableTasks.add(callable);
+				}
+				List<Future<String>> statusFutures = executorService.invokeAll(callableTasks);
+				List<Integer> currentRemainingFilesList = new ArrayList<>(statusFutures.size());
+				for (Future<String> future : statusFutures) {
+					String response = future.get();
+					JsonObject jsonResponse = jsonUtils.getJson(response);
+					int remainingFiles = jsonResponse.get("remainingFiles").getAsInt();
+					currentRemainingFilesList.add(remainingFiles);
+					if (remainingFiles != 0) {
+						allDone = false;
+					}
+				}
+				if (!allDone) {
+					log.info("Waiting for all workers to finish QoE analysis (list of remaining files): {}", currentRemainingFilesList);
+				}
+			}
+			log.info("Finished QoE Analysis, results can be found in the S3 Bucket");
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+	}
 }

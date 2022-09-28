@@ -1,5 +1,6 @@
 package io.openvidu.loadtest.models.testcase;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 public class RequestBody {
@@ -29,13 +30,29 @@ public class RequestBody {
 	private boolean headlessBrowser = false;
 	private String recordingMetadata = "";
 	private String s3BucketName = "";
-	private boolean qoeAnalysis = false;
-
-	public boolean isQoeAnalysis() {
-		return qoeAnalysis;
-	}
+	private boolean qoeAnalysisEnabled = false;
+	private int paddingDuration = 1;
+	private int fragmentDuration = 5;
+	private String videoType = "bunny";
+	private int videoWidth = 640;
+	private int videoHeight = 480;
+	private int videoFps = 30;
+	private String videoUrl = "";
+	private String audioUrl = "";
 
 	public RequestBody() {
+	}
+
+	public boolean isQoeAnalysisEnabled() {
+		return qoeAnalysisEnabled;
+	}
+
+	public int getPaddingDuration() {
+		return paddingDuration;
+	}
+
+	public int getFragmentDuration() {
+		return fragmentDuration;
 	}
 
 	public String getOpenviduUrl() {
@@ -130,8 +147,34 @@ public class RequestBody {
 		return headlessBrowser;
 	}
 
-	public RequestBody qoeAnalysis(boolean qoeAnalysis) {
-		this.qoeAnalysis = qoeAnalysis;
+	public String getVideoType() {
+		return videoType;
+	}
+
+	public int getVideoWidth() {
+		return videoWidth;
+	}
+
+	public int getVideoHeight() {
+		return videoHeight;
+	}
+
+	public int getVideoFps() {
+		return videoFps;
+	}
+
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public String getAudioUrl() {
+		return audioUrl;
+	}
+
+	public RequestBody qoeAnalysis(boolean qoeAnalysis, int paddingDuration, int fragmentDuration) {
+		this.qoeAnalysisEnabled = qoeAnalysis;
+		this.paddingDuration = paddingDuration;
+		this.fragmentDuration = fragmentDuration;
 		return this;
 	}
 
@@ -264,9 +307,39 @@ public class RequestBody {
 		return this;
 	}
 
+	public RequestBody videoType(String videoType) {
+		this.videoType = videoType;
+		return this;
+	}
+	
+	public RequestBody videoWidth(int videoWidth) {
+		this.videoWidth = videoWidth;
+		return this;
+	}
+
+	public RequestBody videoHeight(int videoHeight) {
+		this.videoHeight = videoHeight;
+		return this;
+	}
+
+	public RequestBody videoFps(int videoFps) {
+		this.videoFps = videoFps;
+		return this;
+	}
+
+	public RequestBody videoUrl(String videoUrl) {
+		this.videoUrl = videoUrl;
+		return this;
+	}
+
+	public RequestBody audioUrl(String audioUrl) {
+		this.audioUrl = audioUrl;
+		return this;
+	}
+
 	public RequestBody build() {
 		return new RequestBody(openviduUrl, openviduSecret, elasticSearchHost, elasticSearchUserName, elasticSearchPassword, elasticSearchIndex, awsAccessKey, awsSecretAccessKey, browserMode, userId, sessionName, token, role, audio, video,
-				resolution, openviduRecordingMode, frameRate, bitRate, videoFilename, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysis);
+				resolution, openviduRecordingMode, frameRate, bitRate, videoFilename, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysisEnabled, paddingDuration, fragmentDuration, videoType, videoWidth, videoHeight, videoFps, videoUrl, audioUrl);
 	}
 
 	public JsonObject toJson() {
@@ -282,7 +355,39 @@ public class RequestBody {
 		jsonBody.addProperty("awsSecretAccessKey", this.awsSecretAccessKey);
 		jsonBody.addProperty("s3BucketName", this.s3BucketName);
 		jsonBody.addProperty("browserMode", this.browserMode.getValue());
-		jsonBody.addProperty("qoeAnalysis", this.qoeAnalysis);
+		if (this.qoeAnalysisEnabled) {
+			JsonObject qoe = new JsonObject();
+			qoe.addProperty("enabled", this.qoeAnalysisEnabled);
+			qoe.addProperty("paddingDuration", this.paddingDuration);
+			qoe.addProperty("fragmentDuration", this.fragmentDuration);
+			jsonBody.add("qoeAnalysis", qoe);
+		}
+		
+		JsonObject browserVideo = new JsonObject();
+		if (this.videoType.equals("custom")) {
+			JsonObject videoType = new JsonObject();
+			videoType.addProperty("audioUrl", this.audioUrl);
+			JsonObject videoInfo = new JsonObject();
+			videoInfo.addProperty("url", this.videoUrl);
+			videoInfo.addProperty("width", this.videoWidth);
+			videoInfo.addProperty("height", this.videoHeight);
+			videoInfo.addProperty("fps", this.videoFps);
+			JsonArray videos = new JsonArray();
+			videos.add(videoInfo);
+			videoType.add("videos", videos);
+			browserVideo.add("videoType", videoType);
+		} else {
+			browserVideo.addProperty("videoType", this.videoType);
+			JsonArray videoInfoArray = new JsonArray();
+			JsonObject videoInfo = new JsonObject();
+			videoInfo.addProperty("width", this.videoWidth);
+			videoInfo.addProperty("height", this.videoHeight);
+			videoInfo.addProperty("fps", this.videoFps);
+			videoInfoArray.add(videoInfo);
+			browserVideo.add("videoInfo", videoInfoArray);
+		}
+		jsonBody.add("browserVideo", browserVideo);
+
 		properties.addProperty("userId", this.userId);
 		properties.addProperty("sessionName", this.sessionName);
 		properties.addProperty("role", this.role.getValue());
@@ -317,7 +422,7 @@ public class RequestBody {
 	private RequestBody(String openviduUrl, String openviduSecret, String elasticSearchHost, String elasticSearchUserName, String elasticSearchPassword, String elasticSearchIndex, String awsAccessKey, String awsSecretAccessKey, BrowserMode browserMode, String userId,
 			String sessionName, String token, OpenViduRole role, boolean audio, boolean video, Resolution resolution,
 			OpenViduRecordingMode openviduRecordingMode, int frameRate, int bitRate, String videoFilename, boolean browserRecording,
-			boolean showVideoElements, boolean headlessBrowser, String recordingMetadata, String s3BucketName, boolean qoeAnalysis) {
+			boolean showVideoElements, boolean headlessBrowser, String recordingMetadata, String s3BucketName, boolean qoeAnalysis, int paddingDuration, int fragmentDuration, String videoType, int videoWidth, int videoHeight, int videoFps, String videoUrl, String audioUrl) {
 		super();
 		this.openviduUrl = openviduUrl;
 		this.openviduSecret = openviduSecret;
@@ -344,7 +449,15 @@ public class RequestBody {
 		this.headlessBrowser = headlessBrowser;
 		this.recordingMetadata = recordingMetadata;
 		this.s3BucketName = s3BucketName;
-		this.qoeAnalysis = qoeAnalysis;
+		this.qoeAnalysisEnabled = qoeAnalysis;
+		this.paddingDuration = paddingDuration;
+		this.fragmentDuration = fragmentDuration;
+		this.videoType = videoType;
+		this.videoWidth = videoWidth;
+		this.videoHeight = videoHeight;
+		this.videoFps = videoFps;
+		this.videoUrl = videoUrl;
+		this.audioUrl = audioUrl;
 	}
 
 }

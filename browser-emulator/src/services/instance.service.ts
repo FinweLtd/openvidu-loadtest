@@ -184,7 +184,7 @@ export class InstanceService {
 		if (fs.existsSync(`${this.AWS_CREDENTIALS_PATH}/config.json`)) {
 			AWS.config.loadFromPath(`${this.AWS_CREDENTIALS_PATH}/config.json`);
 			const s3 = new AWS.S3();
-			const dirs = [`${process.env.PWD}/recordings/kms`, `${process.env.PWD}/recordings/chrome`];
+			const dirs = [`${process.env.PWD}/recordings/kms`, `${process.env.PWD}/recordings/chrome`, `${process.env.PWD}/recordings/qoe`];
 
 			if(!(await this.isBucketCreated(process.env.S3_BUCKET))) {
 				await this.createS3Bucket(process.env.S3_BUCKET);
@@ -211,7 +211,7 @@ export class InstanceService {
 										return reject(err);
 									} else {
 										console.log(`Successfully uploaded data to ${process.env.S3_BUCKET} / ${file}`);
-										return resolve(fsPromises.rm(filePath, { recursive: true, force: true }));
+										return resolve("");
 									}
 								});
 							}));

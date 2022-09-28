@@ -82,7 +82,25 @@ public class LoadTestConfig {
 	
 	private int retryTimes;
 
-	private boolean qoeAnalysis;
+	private boolean qoeAnalysisRecordings;
+
+	private boolean qoeAnalysisInSitu;
+
+	private int paddingDuration;
+	
+	private int fragmentDuration;
+
+	private String videoType;
+
+	private int videoHeight;
+	
+	private int videoWidth;
+
+	private int videoFps;
+
+	private String videoUrl;
+
+	private String audioUrl;
 
 	private String format = "%-25s%3s%n";
 	
@@ -251,10 +269,46 @@ public class LoadTestConfig {
 		return retryTimes;
 	}
 
-	public boolean isQoeAnalysis() {
-		return qoeAnalysis;
+	public boolean isQoeAnalysisRecordings() {
+		return qoeAnalysisRecordings;
+	}
+
+	public boolean isQoeAnalysisInSitu() {
+		return qoeAnalysisInSitu;
+	}
+
+	public int getPaddingDuration() {
+		return paddingDuration;
+	}
+
+	public int getFragmentDuration() {
+		return fragmentDuration;
 	}
 	
+	public String getVideoType() {
+		return videoType;
+	}
+
+	public int getVideoHeight() {
+		return videoHeight;
+	}
+
+	public int getVideoWidth() {
+		return videoWidth;
+	}
+
+	public int getVideoFps() {
+		return videoFps;
+	}
+
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public String getAudioUrl() {
+		return audioUrl;
+	}
+
 	@PostConstruct
 	private void checkConfigurationProperties() {
 
@@ -291,7 +345,16 @@ public class LoadTestConfig {
 			s3bucketName = asOptionalString("S3_BUCKET_NAME");
 			retryMode = asBoolean("RETRY_MODE");
 			retryTimes = asInt("RETRY_TIMES");
-			qoeAnalysis = asBoolean("QOE_ANALYSIS");
+			qoeAnalysisRecordings = asBoolean("QOE_ANALYSIS_RECORDINGS");
+			qoeAnalysisInSitu = asBoolean("QOE_ANALYSIS_IN_SITU");
+			paddingDuration = asInt("VIDEO_PADDING_DURATION");
+			fragmentDuration = asInt("VIDEO_FRAGMENT_DURATION");
+			videoType = asString("VIDEO_TYPE");
+			videoHeight = asInt("VIDEO_HEIGHT");
+			videoWidth = asInt("VIDEO_WIDTH");
+			videoFps = asInt("VIDEO_FPS");
+			videoUrl = asOptionalString("VIDEO_URL");
+			audioUrl = asOptionalString("AUDIO_URL");
 			this.printInfo();
 
 		} catch (Exception e) {
@@ -338,9 +401,9 @@ public class LoadTestConfig {
 		}
 		
 		if(retryMode) {
-			System.out.printf(format, "Controller started in RETRY MODE");
+			System.out.println("Controller started in RETRY MODE");
 			if(retryTimes < 1) {
-				System.err.printf(format, "Retry times is undefined");
+				System.err.println("Retry times is undefined");
 				System.exit(1);
 			}
 		}
@@ -385,6 +448,16 @@ public class LoadTestConfig {
 		System.out.printf(format, "ElasticSearch Host:", elasticsearchHost);
 		System.out.printf(format, "ElasticSearch Username:", elasticsearchUserName);
 		System.out.printf(format, "ElasticSearch Password:", elasticsearchPassword);
+		System.out.println("-------- -------------------- --------");
+
+		System.out.printf("\n");
+		System.out.printf("--- QOE ANALYSIS PARAMETERS ---");
+		System.out.printf("\n");
+
+		System.out.printf(format, "QoE recordings:", qoeAnalysisRecordings);
+		System.out.printf(format, "QoE analysis will be run in-situ:", qoeAnalysisInSitu);
+		System.out.printf(format, "Video padding duration:", paddingDuration);
+		System.out.printf(format, "Video fragment duration:", fragmentDuration);
 		System.out.println("-------- -------------------- --------");
 	}
 

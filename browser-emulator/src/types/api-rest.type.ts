@@ -10,7 +10,9 @@ export interface LoadTestPostRequest {
 }
 
 export interface InitializePostRequest {
-	qoeAnalysis?: string;
+	qoeAnalysis?: QoeAnalysisRequest;
+    // Only needed with browser type REAL
+    browserVideo?: BrowserVideoRequest;
     elasticSearchPassword: string;
 	elasticSearchUserName: string;
 	elasticSearchHost: string;
@@ -20,6 +22,32 @@ export interface InitializePostRequest {
 	s3BucketName?: string;
 }
 
+export interface BrowserVideoRequest {
+    videoType: "bunny" | "interview" | "game" | CustomBrowserVideoRequest;
+    // needed if not using custom video
+    videoInfo?: BrowserVideoInfo[];
+}
+
+export interface BrowserVideoInfo {
+    width: number;
+    height: number;
+    fps: number;
+}
+
+export interface CustomBrowserVideoRequest {
+    videos: CustomBrowserVideo[];
+    audioUrl: string;
+}
+
+export interface CustomBrowserVideo extends BrowserVideoInfo {
+    url: string;
+}
+
+export interface QoeAnalysisRequest {
+    enabled: boolean;
+    fragment_duration: number;
+    padding_duration: number;
+}
 
 export enum BrowserMode {
 	EMULATE = 'EMULATE',
@@ -78,14 +106,34 @@ export interface JSONStatsResponse {
     webrtc_stats: IWebrtcStats
 }
 
-export interface JSONStreamsInfo {
-	'@timestamp': string,
+export interface JSONStreamsInfo extends JSONUserInfo {
 	streams: number,
 	worker_name: string
     node_role: string,
+}
+
+export interface JSONUserInfo {
+    '@timestamp': string,
     new_participant_id: string,
     new_participant_session: string
+}
 
+export interface JSONQoeProcessing {
+    index: string,
+    padding_duration: number,
+    fragment_duration: number,
+    presenter_video_file_location: string,
+    presenter_audio_file_location: string,
+    width: number | string,
+    height: number | string,
+    framerate: number,
+    timestamps?: JSONUserInfo[]
+}
+
+export interface JSONQoeProcessingELK extends JSONQoeProcessing {
+    elasticsearch_hostname: string,
+    elasticsearch_username: string,
+    elasticsearch_password: string,
 }
 
 export interface JSONQoEInfo {
