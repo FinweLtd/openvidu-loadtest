@@ -13,6 +13,7 @@ public class RequestBody {
 	private String elasticSearchIndex = "";
 	private String awsAccessKey = "";
 	private String awsSecretAccessKey = "";
+	private String awsSessionToken = "";
 	private BrowserMode browserMode = BrowserMode.EMULATE;
 	private String userId = "";
 	private String sessionName = "";
@@ -97,6 +98,10 @@ public class RequestBody {
 
 	public String getAwsSecretAccessKey() {
 		return awsSecretAccessKey;
+	}
+
+	public String getAwsSessionToken() {
+		return awsSessionToken;
 	}
 
 	public String getToken() {
@@ -205,6 +210,11 @@ public class RequestBody {
 
 	public RequestBody elasticSearchIndex(String elasticSearchIndex) {
 		this.elasticSearchIndex = elasticSearchIndex;
+		return this;
+	}
+	
+	public RequestBody awsSessionToken(String awsSessionToken) {
+		this.awsSessionToken = awsSessionToken;
 		return this;
 	}
 	
@@ -338,7 +348,7 @@ public class RequestBody {
 	}
 
 	public RequestBody build() {
-		return new RequestBody(openviduUrl, openviduSecret, elasticSearchHost, elasticSearchUserName, elasticSearchPassword, elasticSearchIndex, awsAccessKey, awsSecretAccessKey, browserMode, userId, sessionName, token, role, audio, video,
+		return new RequestBody(openviduUrl, openviduSecret, elasticSearchHost, elasticSearchUserName, elasticSearchPassword, elasticSearchIndex, awsAccessKey, awsSecretAccessKey, awsSessionToken, browserMode, userId, sessionName, token, role, audio, video,
 				resolution, openviduRecordingMode, frameRate, bitRate, videoFilename, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysisEnabled, paddingDuration, fragmentDuration, videoType, videoWidth, videoHeight, videoFps, videoUrl, audioUrl);
 	}
 
@@ -353,6 +363,7 @@ public class RequestBody {
 		jsonBody.addProperty("elasticSearchIndex", this.elasticSearchIndex);
 		jsonBody.addProperty("awsAccessKey", this.awsAccessKey);
 		jsonBody.addProperty("awsSecretAccessKey", this.awsSecretAccessKey);
+		jsonBody.addProperty("awsSessionToken", this.awsSessionToken);
 		jsonBody.addProperty("s3BucketName", this.s3BucketName);
 		jsonBody.addProperty("browserMode", this.browserMode.getValue());
 		if (this.qoeAnalysisEnabled) {
@@ -419,7 +430,7 @@ public class RequestBody {
 
 	}
 
-	private RequestBody(String openviduUrl, String openviduSecret, String elasticSearchHost, String elasticSearchUserName, String elasticSearchPassword, String elasticSearchIndex, String awsAccessKey, String awsSecretAccessKey, BrowserMode browserMode, String userId,
+	private RequestBody(String openviduUrl, String openviduSecret, String elasticSearchHost, String elasticSearchUserName, String elasticSearchPassword, String elasticSearchIndex, String awsAccessKey, String awsSecretAccessKey, String awsSessionToken, BrowserMode browserMode, String userId,
 			String sessionName, String token, OpenViduRole role, boolean audio, boolean video, Resolution resolution,
 			OpenViduRecordingMode openviduRecordingMode, int frameRate, int bitRate, String videoFilename, boolean browserRecording,
 			boolean showVideoElements, boolean headlessBrowser, String recordingMetadata, String s3BucketName, boolean qoeAnalysis, int paddingDuration, int fragmentDuration, String videoType, int videoWidth, int videoHeight, int videoFps, String videoUrl, String audioUrl) {
@@ -432,6 +443,7 @@ public class RequestBody {
 		this.elasticSearchIndex = elasticSearchIndex;
 		this.awsAccessKey = awsAccessKey;
 		this.awsSecretAccessKey = awsSecretAccessKey;
+		this.awsSessionToken = awsSessionToken;
 		this.browserMode = browserMode;
 		this.userId = userId;
 		this.sessionName = sessionName;

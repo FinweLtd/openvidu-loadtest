@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.BlockDeviceMapping;
@@ -71,7 +73,12 @@ public class Ec2Client {
 		RECORDING_WORKERS_NUMBER_AT_THE_BEGINNING = this.loadTestConfig.getRecordingWorkersNumberAtTheBeginning();
 
 		if(!this.loadTestConfig.getAwsAccessKey().isBlank() && !this.loadTestConfig.getAwsSecretAccessKey().isBlank()) {
-			BasicAWSCredentials awsCreds = new BasicAWSCredentials(this.loadTestConfig.getAwsAccessKey(), this.loadTestConfig.getAwsSecretAccessKey());
+			AWSCredentials awsCreds = null;
+			if(!this.loadTestConfig.getAwsSessionToken().isBlank()) {
+				awsCreds = new BasicSessionCredentials(this.loadTestConfig.getAwsAccessKey(), this.loadTestConfig.getAwsSecretAccessKey(), this.loadTestConfig.getAwsSessionToken());
+			} else {
+				awsCreds = new BasicAWSCredentials(this.loadTestConfig.getAwsAccessKey(), this.loadTestConfig.getAwsSecretAccessKey());
+			}
 			ec2 = AmazonEC2ClientBuilder.standard().withRegion(INSTANCE_REGION).withCredentials(new AWSStaticCredentialsProvider(awsCreds)).build();
 		} else {
 			if(this.loadTestConfig.getWorkerUrlList().isEmpty()) {

@@ -72,6 +72,8 @@ public class LoadTestConfig {
 
 	private String kibanaHost;
 
+	private String awsSessionToken;
+
 	private String awsSecretAccessKey;
 	
 	private String awsAccessKey;
@@ -113,6 +115,17 @@ public class LoadTestConfig {
 
 		System.out.println("-------- Load Test Parameters CHANGED:");
 		System.out.printf(format, "OpenVidu URL:", openviduUrl);
+	}
+
+	public String getAwsSessionToken() {
+		return awsSessionToken;
+	}
+
+	public void setAwsSessionToken(String token) {
+		this.awsSessionToken = token;
+
+		System.out.println("-------- Load Test Parameters CHANGED:");
+		System.out.printf(format, "AWS Session Token:", token);
 	}
 
 	public String getAwsSecretAccessKey() {
@@ -340,6 +353,7 @@ public class LoadTestConfig {
 			medianodeLoadForStartRecording = asDouble("MEDIANODE_LOAD_FOR_START_RECORDING");
 			recordingSessionGroup = asInt("RECORDING_SESSION_GRUPED_BY");
 			terminateWorkers = asBoolean("TERMINATE_WORKERS");
+			awsSessionToken = asOptionalString("AWS_SESSION_TOKEN");
 			awsSecretAccessKey = asOptionalString("AWS_SECRET_ACCESS_KEY");
 			awsAccessKey = asOptionalString("AWS_ACCESS_KEY");
 			s3bucketName = asOptionalString("S3_BUCKET_NAME");
@@ -381,6 +395,10 @@ public class LoadTestConfig {
 		String envAwsSecretAccessKey = System.getenv("OPENVIDU_LOADTEST_AWS_SECRET_ACCESS_KEY");
 		if (null != envAwsSecretAccessKey && !envAwsSecretAccessKey.isEmpty()) {
 			awsSecretAccessKey = envAwsSecretAccessKey;
+		}
+		String envAwsSessionToken = System.getenv("OPENVIDU_LOADTEST_AWS_SESSION_TOKEN");
+		if (null != envAwsSessionToken && !envAwsSessionToken.isEmpty()) {
+			awsSessionToken = envAwsSessionToken;
 		}
 
 		System.out.println("-------- Load Test Parameters --------");

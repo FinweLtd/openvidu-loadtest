@@ -35,6 +35,26 @@ INSTANCE_ID=$(aws ec2 describe-instances \
   --filters "Name=tag:Name,Values=BrowserEmulatorAMI-${DATESTAMP}" \
   --profile $AWS_PROFILE | jq -r ' .Reservations[] | .Instances[] | .InstanceId')
 
+# ### PAUSE-START: Allow accessing instance created by 'create-stack' before creating AMI based on that instance
+# ### NOTE! Alternate way to provide data for testing instead of downloading during instance creation
+# ### Activate this part if you want to manually copy data (like test videos) into the AMI
+# ### + no need to upload that data into public location like public S3 bucket
+# ### - required: template must configure 'KeyName: [your ssh key]' to be able to access this instance
+# ### - required: security group used by this instance must allow SSH connection from your IP
+
+# ## Show relevant variables that the rest of the script relies on (just in case something goes wrong...)
+# echo "- current TEMPJSON=${TEMPJSON}"
+# echo "- current DATESTAMP=${DATESTAMP}"
+# echo "- current INSTANCE_ID=${INSTANCE_ID}"
+# ## Wait for user to type 'yes' before continuing
+# continue_allowed="no"
+# while [ "${continue_allowed}" != "yes" ]
+# do
+#     echo "Please type 'yes' to continue ..."
+#     read continue_allowed
+# done
+# ### PAUSE-END: Allow accessing instance created by 'create-stack' before creating AMI based on that instance
+
 echo "Stopping the instance"
 aws ec2 stop-instances --instance-ids ${INSTANCE_ID} \
   --profile $AWS_PROFILE

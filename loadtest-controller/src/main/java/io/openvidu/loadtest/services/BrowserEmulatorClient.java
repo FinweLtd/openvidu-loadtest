@@ -80,6 +80,7 @@ public class BrowserEmulatorClient {
 				.elasticSearchIndex(LOADTEST_INDEX)
 				.awsAccessKey(this.loadTestConfig.getAwsAccessKey())
 				.awsSecretAccessKey(this.loadTestConfig.getAwsSecretAccessKey())
+				.awsSessionToken(this.loadTestConfig.getAwsSessionToken())
 				.s3BucketName(loadTestConfig.getS3BucketName())
 				.videoType(loadTestConfig.getVideoType())
 				.videoHeight(loadTestConfig.getVideoHeight())
