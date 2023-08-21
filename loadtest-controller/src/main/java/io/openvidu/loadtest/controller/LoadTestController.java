@@ -1,9 +1,11 @@
 package io.openvidu.loadtest.controller;
 
+import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import com.amazonaws.services.ec2.model.Instance;
+import com.google.gson.JsonObject;
 
 import io.openvidu.loadtest.config.LoadTestConfig;
 import io.openvidu.loadtest.models.testcase.CreateParticipantResponse;
@@ -34,7 +37,9 @@ import io.openvidu.loadtest.monitoring.KibanaClient;
 import io.openvidu.loadtest.services.BrowserEmulatorClient;
 import io.openvidu.loadtest.services.Ec2Client;
 import io.openvidu.loadtest.services.WebSocketClient;
+import io.openvidu.loadtest.utils.CustomHttpClient;
 import io.openvidu.loadtest.utils.DataIO;
+import io.openvidu.loadtest.utils.JsonUtils;
 
 /**
  * @author Carlos Santos
@@ -82,6 +87,17 @@ public class LoadTestController {
 
 	private static List<Integer> streamsPerWorker = new ArrayList<>();
 	private static Map<Calendar, List<String>> userStartTimes = new ConcurrentHashMap<>();
+
+	@Autowired
+	private CustomHttpClient httpClient;
+
+	@Autowired
+	private JsonUtils jsonUtils;
+
+	private static final int HTTP_STATUS_OK_START = 200;
+	private static final int HTTP_STATUS_OK_END = 300;
+
+	private String currentAuthToken = "";
 
 	public LoadTestController(BrowserEmulatorClient browserEmulatorClient, LoadTestConfig loadTestConfig,
 			KibanaClient kibanaClient, ElasticSearchClient esClient, Ec2Client ec2Client) {
@@ -191,15 +207,17 @@ public class LoadTestController {
 		private String worker;
 		private int user;
 		private int session;
+		private String sessionUrl;
 		private TestCase testCase;
 		private boolean recording;
 		private String recordingMetadata;
 		private OpenViduRole role;
 
-		public ParticipantTask(String worker, int user, int session, TestCase testCase, OpenViduRole role,
+		public ParticipantTask(String worker, int user, int session, String sessionUrl, TestCase testCase, OpenViduRole role,
 				boolean recording, String recordingMetadata) {
 			this.worker = worker;
 			this.session = session;
+			this.sessionUrl = sessionUrl;
 			this.user = user;
 			this.testCase = testCase;
 			this.role = role;
@@ -212,17 +230,17 @@ public class LoadTestController {
 			CreateParticipantResponse response;
 			if (recording) {
 				if (role.equals(OpenViduRole.PUBLISHER)) {
-					response = browserEmulatorClient.createExternalRecordingPublisher(worker, user, session, testCase,
-							recordingMetadata);
+					response = browserEmulatorClient.createExternalRecordingPublisher(worker, user, session, sessionUrl,
+							testCase, recordingMetadata);
 				} else {
-					response = browserEmulatorClient.createExternalRecordingSubscriber(worker, user, session, testCase,
-							recordingMetadata);
+					response = browserEmulatorClient.createExternalRecordingSubscriber(worker, user, session, sessionUrl,
+							testCase, recordingMetadata);
 				}
 			} else {
 				if (role.equals(OpenViduRole.PUBLISHER)) {
-					response = browserEmulatorClient.createPublisher(worker, user, session, testCase);
+					response = browserEmulatorClient.createPublisher(worker, user, session, sessionUrl, testCase);
 				} else {
-					response = browserEmulatorClient.createSubscriber(worker, user, session, testCase);
+					response = browserEmulatorClient.createSubscriber(worker, user, session, sessionUrl, testCase);
 				}
 			}
 			if (response.isResponseOk()) {
@@ -240,16 +258,87 @@ public class LoadTestController {
 
 	}
 
+	private boolean httpStatusOk(int statusCode) {
+		return (statusCode >= HTTP_STATUS_OK_START && statusCode < HTTP_STATUS_OK_END);
+	}
+
+	private String getNewAuthToken() {
+		String authToken = "";
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("client_id", loadTestConfig.getClientId());
+		params.put("client_secret", loadTestConfig.getClientSecret());
+
+		try {
+			HttpResponse<String> response = this.httpClient.sendPostUrlEncoded(
+					loadTestConfig.getClientAuthUrl(), params, null);
+			if (httpStatusOk(response.statusCode())) {
+				JsonObject jsonResponse = jsonUtils.getJson(response.body());
+				authToken = jsonResponse.get("access_token").getAsString();
+			} else {
+				log.error("Failed to get new auth token, response status code: {}", response.statusCode());
+				log.error("Failed to get new auth token, response body: {}", response.body());
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+
+		return authToken;
+	}
+
+	private String getNewSessionUrl() {
+		String sessionUrl = "";
+		try {
+			JsonObject body = jsonUtils.getJson("{\"anonymousUser\": true}");
+			Map<String, String> headers = new HashMap<String, String>();
+			headers.put("Api-Key", loadTestConfig.getClientApiKey());
+
+			final int maxRetries = 1;
+			int retries = 0;
+			while (retries <= maxRetries) {
+				if (currentAuthToken.isBlank()) {
+					currentAuthToken = getNewAuthToken();
+				}
+
+				// Set authorization header here for retry to use new token
+				headers.put("Authorization", "Bearer " + currentAuthToken);
+
+				HttpResponse<String> response = this.httpClient.sendPost(
+					loadTestConfig.getClientSessionUrl(), body, null, headers);
+				if (httpStatusOk(response.statusCode())) {
+					JsonObject jsonResponse = jsonUtils.getJson(response.body());
+					sessionUrl = jsonResponse.get("userURL").getAsString();
+					log.info("Response body: {}", response.body());
+					break;
+				} else {
+					++retries;
+					if (retries <= maxRetries) {
+						// Clear current token to get new one
+						currentAuthToken = "";
+					} else {
+						log.error("Failed to get new session url (after retry), response status code: {}", response.statusCode());
+						log.error("Failed to get new session url, response body: {}", response.body());
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+		}
+
+		return sessionUrl;
+	}
+
 	private boolean estimate(String workerUrl, TestCase testCase, int publishers, int subscribers) {
 		log.info("Starting browser estimation");
 		initializeInstance(workerUrl);
+		// Get new session URL for estimation
+		String sessionUrl = getNewSessionUrl();
 		boolean overloaded = false;
 		int iteration = 0;
 		while (!overloaded) {
 			// TODO: take into account recording workers
 			for (int i = 0; i < publishers; i++) {
-				CreateParticipantResponse response = browserEmulatorClient.createPublisher(workerUrl, iteration + i, 0,
-						testCase);
+				CreateParticipantResponse response = browserEmulatorClient.createPublisher(workerUrl,
+						iteration + i, 0, sessionUrl, testCase);
 				if (response.isResponseOk()) {
 					double cpu = response.getWorkerCpuPct();
 					if (cpu > loadTestConfig.getWorkerMaxLoad()) {
@@ -266,10 +355,8 @@ public class LoadTestController {
 			}
 			if (!overloaded) {
 				for (int i = 0; i < subscribers; i++) {
-					CreateParticipantResponse response = browserEmulatorClient.createSubscriber(
-							workerUrl,
-							iteration + publishers + i, 0,
-							testCase);
+					CreateParticipantResponse response = browserEmulatorClient.createSubscriber(workerUrl,
+							iteration + publishers + i, 0, sessionUrl, testCase);
 					if (response.isResponseOk()) {
 						double cpu = response.getWorkerCpuPct();
 						if (cpu >= loadTestConfig.getWorkerMaxLoad()) {
@@ -462,6 +549,9 @@ public class LoadTestController {
 
 			sessionNumber.getAndIncrement();
 			log.info("Starting session '{}'", loadTestConfig.getSessionNamePrefix() + sessionNumber.toString());
+			// Get a new session URL
+			String sessionUrl = getNewSessionUrl();
+
 			List<Future<CreateParticipantResponse>> futureList = new ArrayList<>(browserEstimation);
 			boolean isLastSession = sessionNumber.get() == testCaseSessionsLimit;
 			for (int i = 0; i < participantsBySession; i++) {
@@ -480,15 +570,13 @@ public class LoadTestController {
 							+ participantsBySession + "PSes";
 					futureList.add(executorService
 							.submit(new ParticipantTask(recWorker, userNumber.getAndIncrement(), sessionNumber.get(),
-									testCase,
-									OpenViduRole.PUBLISHER,
+									sessionUrl, testCase, OpenViduRole.PUBLISHER,
 									true, recordingMetadata)));
 					tasksInProgress++;
 				} else {
 					futureList.add(executorService
 							.submit(new ParticipantTask(worker, userNumber.getAndIncrement(), sessionNumber.get(),
-									testCase,
-									OpenViduRole.PUBLISHER,
+									sessionUrl, testCase, OpenViduRole.PUBLISHER,
 									false, null)));
 					browsersInWorker++;
 					tasksInProgress++;
@@ -551,12 +639,12 @@ public class LoadTestController {
 							+ subscribers + "PSes";
 					futureList.add(executorService
 							.submit(new ParticipantTask(recWorker, userNumber.getAndIncrement(), sessionNumber.get(),
-									testCase,
+									"", testCase,
 									OpenViduRole.PUBLISHER, true, recordingMetadata)));
 				} else {
 					futureList.add(executorService
 							.submit(new ParticipantTask(worker, userNumber.getAndIncrement(), sessionNumber.get(),
-									testCase, OpenViduRole.PUBLISHER, false, null)));
+									"", testCase, OpenViduRole.PUBLISHER, false, null)));
 				}
 				tasksSubmittedPerWorker++;
 				if ((tasksSubmittedPerWorker >= browserEstimation) && (loadTestConfig.getWorkersRumpUp() > 0)) {
@@ -584,11 +672,11 @@ public class LoadTestController {
 							+ subscribers + "PSes";
 					futureList.add(executorService
 							.submit(new ParticipantTask(recWorker, userNumber.getAndIncrement(), sessionNumber.get(),
-									testCase, OpenViduRole.SUBSCRIBER, true, recordingMetadata)));
+									"", testCase, OpenViduRole.SUBSCRIBER, true, recordingMetadata)));
 				} else {
 					futureList.add(executorService
 							.submit(new ParticipantTask(worker, userNumber.getAndIncrement(), sessionNumber.get(),
-									testCase, OpenViduRole.SUBSCRIBER, false, null)));
+									"", testCase, OpenViduRole.SUBSCRIBER, false, null)));
 				}
 				tasksSubmittedPerWorker++;
 				boolean isLastParticipant = i == subscribers - 1;

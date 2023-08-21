@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
@@ -65,6 +66,39 @@ public class CustomHttpClient {
 			requestBuilder.header("Content-Type", "application/json");
 			postBody = HttpRequest.BodyPublishers.ofString(body.toString());
 		}
+
+		HttpRequest request = requestBuilder.POST(postBody).timeout(Duration.ofSeconds(60)).build();
+		return client.send(request, HttpResponse.BodyHandlers.ofString());
+	}
+
+	public HttpResponse<String> sendPostUrlEncoded(String url, Map<String, String> params, Map<String, String> headers)
+			throws IOException, InterruptedException {
+
+		Builder requestBuilder = HttpRequest.newBuilder().uri(URI.create(url));
+		BodyPublisher postBody;
+
+		if (headers != null) {
+			headers.forEach((k, v) -> {
+				requestBuilder.header(k, v);
+			});
+		}
+
+		StringBuilder data = new StringBuilder();
+		boolean first = true;
+		for (Map.Entry<String, String> entry : params.entrySet()) {
+			if (first) {
+				first = false;
+			} else {
+				data.append("&");
+			}
+
+			data.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+			data.append("=");
+			data.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+		}
+
+		requestBuilder.header("Content-Type", "application/x-www-form-urlencoded");
+		postBody = HttpRequest.BodyPublishers.ofString(data.toString());
 
 		HttpRequest request = requestBuilder.POST(postBody).timeout(Duration.ofSeconds(60)).build();
 		return client.send(request, HttpResponse.BodyHandlers.ofString());

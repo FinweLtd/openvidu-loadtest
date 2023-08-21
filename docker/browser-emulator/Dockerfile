@@ -11,11 +11,13 @@ RUN apt-get update && apt-get install -yq --no-install-recommends \
 	echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && \
 	apt-get update && \
 	apt-get install -yq --no-install-recommends \
-	build-essential bc make cmake libopencv-dev python3-opencv bazel libnetpbm10-dev xxd \
+	build-essential bc make cmake libopencv-dev python3-opencv bazel-5.4.1 libnetpbm10-dev xxd \
     libjpeg-turbo-progs imagemagick-6.q16 jq automake g++ libtool libleptonica-dev pkg-config nasm ninja-build \
     meson doxygen libx264-dev libx265-dev libnuma-dev && \
 	pkg-config --cflags --libs opencv4 && \
 	rm -rf /var/lib/apt/lists/*
+
+RUN ln -sf /usr/bin/bazel-5.4.1 /usr/bin/bazel
 
 # Install dependencies that can't be installed via apt-get
 # Build VMAF

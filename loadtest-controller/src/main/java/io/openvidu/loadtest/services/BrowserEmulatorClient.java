@@ -137,57 +137,57 @@ public class BrowserEmulatorClient {
 	// }
 	// }
 
-	public CreateParticipantResponse createPublisher(String worker, int userNumber, int sessionNumber, TestCase testCase) {
-		return createPublisher(worker, userNumber, sessionNumber, testCase, 0);
+	public CreateParticipantResponse createPublisher(String worker, int userNumber, int sessionNumber, String sessionUrl, TestCase testCase) {
+		return createPublisher(worker, userNumber, sessionNumber, sessionUrl, testCase, 0);
 	}
 
-	private CreateParticipantResponse createPublisher(String worker, int userNumber, int sessionNumber, TestCase testCase,
-			int failures) {
+	private CreateParticipantResponse createPublisher(String worker, int userNumber, int sessionNumber, String sessionUrl,
+			TestCase testCase, int failures) {
 		TestCase finalTestCase = testCase;
 		if (testCase.isBrowserRecording()) {
 			finalTestCase = new TestCase(testCase);
 			finalTestCase.setBrowserRecording(false);
 		}
-		CreateParticipantResponse success = this.createParticipant(worker, userNumber, sessionNumber,
+		CreateParticipantResponse success = this.createParticipant(worker, userNumber, sessionNumber, sessionUrl,
 				finalTestCase,
 				OpenViduRole.PUBLISHER);
 
 		if (!success.isResponseOk() && loadTestConfig.isRetryMode() && !isResponseLimitReached(failures)) {
-			return this.createPublisher(worker, userNumber, sessionNumber, testCase, failures + 1);
+			return this.createPublisher(worker, userNumber, sessionNumber, sessionUrl, testCase, failures + 1);
 		}
 		return success;
 	}
 
-	public CreateParticipantResponse createSubscriber(String worker, int userNumber, int sessionNumber, TestCase testCase) {
-		return createSubscriber(worker, userNumber, sessionNumber, testCase, 0);
+	public CreateParticipantResponse createSubscriber(String worker, int userNumber, int sessionNumber, String sessionUrl,TestCase testCase) {
+		return createSubscriber(worker, userNumber, sessionNumber, sessionUrl, testCase, 0);
 	}
 
-	private CreateParticipantResponse createSubscriber(String worker, int userNumber, int sessionNumber, TestCase testCase,
-			int failures) {
+	private CreateParticipantResponse createSubscriber(String worker, int userNumber, int sessionNumber, String sessionUrl,
+			TestCase testCase, int failures) {
 		TestCase finalTestCase = testCase;
 		if (testCase.isBrowserRecording()) {
 			finalTestCase = new TestCase(testCase);
 			finalTestCase.setBrowserRecording(false);
 		}
 		OpenViduRole role = OpenViduRole.SUBSCRIBER;
-		CreateParticipantResponse success = this.createParticipant(worker, userNumber, sessionNumber,
+		CreateParticipantResponse success = this.createParticipant(worker, userNumber, sessionNumber, sessionUrl,
 				finalTestCase, role);
 
 		if (!success.isResponseOk() && loadTestConfig.isRetryMode() && !isResponseLimitReached(failures)) {
-			return this.createSubscriber(worker, userNumber, sessionNumber, testCase, failures + 1);
+			return this.createSubscriber(worker, userNumber, sessionNumber, sessionUrl, testCase, failures + 1);
 		}
 		return success;
 	}
 
 	public CreateParticipantResponse createExternalRecordingPublisher(String worker, int userNumber, int sessionNumber,
-			TestCase testCase, String recordingMetadata) {
-		return this.createExternalRecordingParticipant(worker, userNumber, sessionNumber, testCase,
+			String sessionUrl, TestCase testCase, String recordingMetadata) {
+		return this.createExternalRecordingParticipant(worker, userNumber, sessionNumber, sessionUrl, testCase,
 				recordingMetadata, OpenViduRole.PUBLISHER);
 	}
 
 	public CreateParticipantResponse createExternalRecordingSubscriber(String worker, int userNumber, int sessionNumber,
-			TestCase testCase, String recordingMetadata) {
-		return this.createExternalRecordingParticipant(worker, userNumber, sessionNumber, testCase,
+			String sessionUrl, TestCase testCase, String recordingMetadata) {
+		return this.createExternalRecordingParticipant(worker, userNumber, sessionNumber, sessionUrl, testCase,
 				recordingMetadata, OpenViduRole.SUBSCRIBER);
 	}
 
@@ -238,8 +238,7 @@ public class BrowserEmulatorClient {
 	}
 
 	private CreateParticipantResponse createParticipant(String workerUrl, int userNumber, int sessionNumber,
-			TestCase testCase,
-			OpenViduRole role) {
+			String sessionUrl, TestCase testCase, OpenViduRole role) {
 		CreateParticipantResponse cpr = new CreateParticipantResponse();
 		int failures = 0;
 		// Check if there was an exception on openvidu-browser
@@ -252,7 +251,7 @@ public class BrowserEmulatorClient {
 		}
 
 		String sessionSuffix = String.valueOf(sessionNumber);
-		RequestBody body = this.generateRequestBody(userNumber, sessionSuffix, role, testCase);
+		RequestBody body = this.generateRequestBody(userNumber, sessionSuffix, sessionUrl, role, testCase);
 		try {
 			log.info("Selected worker: {}", workerUrl);
 			log.info("Creating participant {} in session {}", userNumber, sessionSuffix);
@@ -283,7 +282,7 @@ public class BrowserEmulatorClient {
 				if (loadTestConfig.isRetryMode() && isResponseLimitReached(failures)) {
 					return cpr.setResponseOk(false);
 				}
-				return this.createParticipant(workerUrl, userNumber, sessionNumber, testCase, role);
+				return this.createParticipant(workerUrl, userNumber, sessionNumber, sessionUrl, testCase, role);
 			} else {
 				this.saveParticipantData(workerUrl, testCase.is_TEACHING() ? OpenViduRole.PUBLISHER : role);
 			}
@@ -292,11 +291,11 @@ public class BrowserEmulatorClient {
 			// lastResponses.add("Failure");
 			if (e.getMessage() != null && e.getMessage().contains("Connection timed out")) {
 				sleep(WAIT_MS);
-				return this.createParticipant(workerUrl, userNumber, sessionNumber, testCase, role);
+				return this.createParticipant(workerUrl, userNumber, sessionNumber, sessionUrl, testCase, role);
 			} else if (e.getMessage() != null && e.getMessage().equalsIgnoreCase("Connection refused")) {
 				log.error("Error trying connect with worker on {}: {}", workerUrl, e.getMessage());
 				sleep(WAIT_MS);
-				return this.createParticipant(workerUrl, userNumber, sessionNumber, testCase, role);
+				return this.createParticipant(workerUrl, userNumber, sessionNumber, sessionUrl, testCase, role);
 			} else if (e.getMessage() != null && e.getMessage().contains("received no bytes")) {
 				System.out.println(e.getMessage());
 				return cpr.setResponseOk(true);
@@ -319,7 +318,7 @@ public class BrowserEmulatorClient {
 	}
 
 	private CreateParticipantResponse createExternalRecordingParticipant(String worker, int userNumber, int sessionNumber,
-			TestCase testCase, String recordingMetadata, OpenViduRole role) {
+			String sessionUrl, TestCase testCase, String recordingMetadata, OpenViduRole role) {
 
 		TestCase testCaseAux = new TestCase(testCase);
 		testCaseAux.setBrowserMode(BrowserMode.REAL);
@@ -327,7 +326,7 @@ public class BrowserEmulatorClient {
 		testCaseAux.setRecordingMetadata(recordingMetadata);
 		log.info("Creating a participant using a REAL BROWSER for recoding");
 		CreateParticipantResponse okResponse = this.createParticipant(worker, userNumber,
-				sessionNumber, testCaseAux, role);
+				sessionNumber, sessionUrl, testCaseAux, role);
 		if (okResponse.isResponseOk()) {
 			recordingParticipantCreated.add(sessionNumber);
 		}
@@ -364,7 +363,7 @@ public class BrowserEmulatorClient {
 	}
 
 // @formatter:off
-	private RequestBody generateRequestBody(int userNumber, String sessionNumber, OpenViduRole role, TestCase testCase) {
+	private RequestBody generateRequestBody(int userNumber, String sessionNumber, String sessionUrl, OpenViduRole role, TestCase testCase) {
 		boolean video = (testCase.is_TEACHING() && role.equals(OpenViduRole.PUBLISHER)) || !testCase.is_TEACHING();
 		OpenViduRole actualRole = testCase.is_TEACHING() ? OpenViduRole.PUBLISHER : role;
 		
@@ -386,6 +385,7 @@ public class BrowserEmulatorClient {
 				.showVideoElements(testCase.isShowBrowserVideoElements())
 				.headlessBrowser(testCase.isHeadlessBrowser())
 				.recordingMetadata(testCase.getRecordingMetadata())
+				.sessionUrl(sessionUrl) // Store sessionUrl into sessionUrl field
 				.build();
 	}
 // @formatter:on

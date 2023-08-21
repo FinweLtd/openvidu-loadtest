@@ -1,0 +1,22 @@
+{
+	"testcases": [
+		{
+			"typology": "N:N",
+			"participants": ["2"],
+			"sessions_inf": "infinite",
+			"sessions": "2",
+			"browserMode": "REAL",
+			"resolution": "1280x720",
+			"frameRate": "24",
+			"bitRate": "1500000",
+			"videoFilename": "fakevideo_24fps_1280x720.y4m",
+			"recording": false,
+			"headless": false,
+			"desciption": "This test case will add infinite sessions (until it reaches its limit) of publishers that the array of participants indicates"
+		},
+		{
+			"typology": "TERMINATE",
+			"desciption": "This terminate all Ec2 instances"
+		}
+	]
+}

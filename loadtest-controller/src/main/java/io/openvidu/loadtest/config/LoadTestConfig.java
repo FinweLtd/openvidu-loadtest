@@ -106,6 +106,16 @@ public class LoadTestConfig {
 
 	private String format = "%-25s%3s%n";
 	
+	private String clientAuthUrl;
+
+	private String clientSessionUrl;
+
+	private String clientId;
+
+	private String clientSecret;
+
+	private String clientApiKey;
+
 	public String getOpenViduUrl() {
 		return this.openviduUrl;
 	}
@@ -322,6 +332,26 @@ public class LoadTestConfig {
 		return audioUrl;
 	}
 
+	public String getClientAuthUrl() {
+		return clientAuthUrl;
+	}
+
+	public String getClientSessionUrl() {
+		return clientSessionUrl;
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public String getClientSecret() {
+		return clientSecret;
+	}
+
+	public String getClientApiKey() {
+		return clientApiKey;
+	}
+
 	@PostConstruct
 	private void checkConfigurationProperties() {
 
@@ -369,6 +399,13 @@ public class LoadTestConfig {
 			videoFps = asInt("VIDEO_FPS");
 			videoUrl = asOptionalString("VIDEO_URL");
 			audioUrl = asOptionalString("AUDIO_URL");
+
+			clientAuthUrl = asString("CLIENT_AUTH_URL");
+			clientSessionUrl = asString("CLIENT_SESSION_URL");
+			clientId = asString("CLIENT_ID");
+			clientSecret = asString("CLIENT_SECRET");
+			clientApiKey = asString("CLIENT_API_KEY");
+
 			this.printInfo();
 
 		} catch (Exception e) {

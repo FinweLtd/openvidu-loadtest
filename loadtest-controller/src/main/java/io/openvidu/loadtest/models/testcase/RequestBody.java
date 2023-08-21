@@ -40,6 +40,7 @@ public class RequestBody {
 	private int videoFps = 30;
 	private String videoUrl = "";
 	private String audioUrl = "";
+	private String sessionUrl = "";
 
 	public RequestBody() {
 	}
@@ -174,6 +175,10 @@ public class RequestBody {
 
 	public String getAudioUrl() {
 		return audioUrl;
+	}
+
+	public String getSessionUrl() {
+		return sessionUrl;
 	}
 
 	public RequestBody qoeAnalysis(boolean qoeAnalysis, int paddingDuration, int fragmentDuration) {
@@ -347,9 +352,14 @@ public class RequestBody {
 		return this;
 	}
 
+	public RequestBody sessionUrl(String sessionUrl) {
+		this.sessionUrl = sessionUrl;
+		return this;
+	}
+
 	public RequestBody build() {
 		return new RequestBody(openviduUrl, openviduSecret, elasticSearchHost, elasticSearchUserName, elasticSearchPassword, elasticSearchIndex, awsAccessKey, awsSecretAccessKey, awsSessionToken, browserMode, userId, sessionName, token, role, audio, video,
-				resolution, openviduRecordingMode, frameRate, bitRate, videoFilename, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysisEnabled, paddingDuration, fragmentDuration, videoType, videoWidth, videoHeight, videoFps, videoUrl, audioUrl);
+				resolution, openviduRecordingMode, frameRate, bitRate, videoFilename, browserRecording, showVideoElements, headlessBrowser, recordingMetadata, s3BucketName, qoeAnalysisEnabled, paddingDuration, fragmentDuration, videoType, videoWidth, videoHeight, videoFps, videoUrl, audioUrl, sessionUrl);
 	}
 
 	public JsonObject toJson() {
@@ -409,7 +419,10 @@ public class RequestBody {
 		properties.addProperty("bitRate", this.bitRate);
 		properties.addProperty("videoFilename", this.videoFilename);
 	
-		
+		if (!sessionUrl.isEmpty()) {
+			properties.addProperty("sessionUrl", this.sessionUrl);
+		}
+
 		if (!token.isEmpty()) {
 			properties.addProperty("token", this.token);
 		}
@@ -433,7 +446,7 @@ public class RequestBody {
 	private RequestBody(String openviduUrl, String openviduSecret, String elasticSearchHost, String elasticSearchUserName, String elasticSearchPassword, String elasticSearchIndex, String awsAccessKey, String awsSecretAccessKey, String awsSessionToken, BrowserMode browserMode, String userId,
 			String sessionName, String token, OpenViduRole role, boolean audio, boolean video, Resolution resolution,
 			OpenViduRecordingMode openviduRecordingMode, int frameRate, int bitRate, String videoFilename, boolean browserRecording,
-			boolean showVideoElements, boolean headlessBrowser, String recordingMetadata, String s3BucketName, boolean qoeAnalysis, int paddingDuration, int fragmentDuration, String videoType, int videoWidth, int videoHeight, int videoFps, String videoUrl, String audioUrl) {
+			boolean showVideoElements, boolean headlessBrowser, String recordingMetadata, String s3BucketName, boolean qoeAnalysis, int paddingDuration, int fragmentDuration, String videoType, int videoWidth, int videoHeight, int videoFps, String videoUrl, String audioUrl, String sessionUrl) {
 		super();
 		this.openviduUrl = openviduUrl;
 		this.openviduSecret = openviduSecret;
@@ -470,6 +483,7 @@ public class RequestBody {
 		this.videoFps = videoFps;
 		this.videoUrl = videoUrl;
 		this.audioUrl = audioUrl;
+		this.sessionUrl = sessionUrl;
 	}
 
 }

@@ -16,7 +16,7 @@ Resources:
         Count: 1
     Properties:
       ImageId: !Ref ImageId
-      InstanceType: "t3.small"
+      InstanceType: "t3.large"
       Tags:
       - Key: Name
         Value: !Ref AWS::StackName
@@ -62,7 +62,7 @@ Resources:
           }
 
           #git clone https://github.com/OpenVidu/openvidu-loadtest.git /opt/openvidu-loadtest
-          git clone https://github.com/FinweLtd/openvidu-loadtest /opt/openvidu-loadtest         
+          git clone --branch client_sessions --single-branch https://github.com/FinweLtd/openvidu-loadtest /opt/openvidu-loadtest
 
           cd /opt/openvidu-loadtest/
 
@@ -73,7 +73,9 @@ Resources:
           # Pull images used by browser-emulator for faster initialization time
           docker pull elastestbrowsers/chrome
           docker pull docker.elastic.co/beats/metricbeat-oss:7.12.0
-          docker pull kurento/kurento-media-server:latest
+          # latest has changed to kms 7: docker pull kurento/kurento-media-server:latest
+          docker pull kurento/kurento-media-server:6.18.0
+          docker tag kurento/kurento-media-server:6.18.0 kurento/kurento-media-server:latest
 
           # Create recording directories
           mkdir -p ../../browser-emulator/recordings/kms

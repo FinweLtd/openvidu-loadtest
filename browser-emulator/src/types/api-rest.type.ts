@@ -72,6 +72,7 @@ export enum RecordingLayoutMode {
 export interface TestProperties {
 	userId: string;
 	sessionName: string;
+	sessionUrl?: string;
 	role: OpenViduRole;
 	audio: boolean;
 	video: boolean;

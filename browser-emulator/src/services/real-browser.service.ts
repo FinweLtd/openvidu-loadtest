@@ -62,6 +62,7 @@ export class RealBrowserService {
 		// Resolution is not significant for audio
 		this.chromeOptions.addArguments(`--use-file-for-fake-video-capture=${this.VIDEO_FILE_LOCATION}_${properties.frameRate}fps_${properties.resolution}.y4m`);
 
+
 		const bindedPort = this.BROWSER_CONTAINER_HOSTPORT + this.portOffset;
 		this.portOffset++;
 		try {
@@ -182,22 +183,30 @@ export class RealBrowserService {
 						);
 					}
 
-					// Wait until connection has been created
-					await chrome.wait(until.elementsLocated(By.id('local-connection-created')), this.BROWSER_WAIT_TIMEOUT_MS);
 					let currentPublishers = 0;
-					if (request.properties.role === OpenViduRole.PUBLISHER) {
-						// Wait until publisher has been published regardless of whether the videos are shown or not
-						await chrome.wait(until.elementsLocated(By.id('local-stream-created')), this.BROWSER_WAIT_TIMEOUT_MS);
-						currentPublishers++;
+					// Skip waiting for local-connection-created when sessionUrl is provided
+					if (!!request.properties.sessionUrl) {
+						if (request.properties.role === OpenViduRole.PUBLISHER) {
+							currentPublishers++;
+						}	
 					} else {
-						// As subscribers are created muted because of user gesture policies, we need to unmute subscriber manually
-						await chrome.wait(until.elementsLocated(By.id('subscriber-need-to-be-unmuted')), this.BROWSER_WAIT_TIMEOUT_MS);
-						await chrome.sleep(1000);
-						const buttons = await chrome.findElements(By.id('subscriber-need-to-be-unmuted'));
-						buttons.forEach(button => button.click());
+						// Wait until connection has been created
+						await chrome.wait(until.elementsLocated(By.id('local-connection-created')), this.BROWSER_WAIT_TIMEOUT_MS);
+						if (request.properties.role === OpenViduRole.PUBLISHER) {
+							// Wait until publisher has been published regardless of whether the videos are shown or not
+							await chrome.wait(until.elementsLocated(By.id('local-stream-created')), this.BROWSER_WAIT_TIMEOUT_MS);
+							currentPublishers++;
+						} else {
+							// As subscribers are created muted because of user gesture policies, we need to unmute subscriber manually
+							await chrome.wait(until.elementsLocated(By.id('subscriber-need-to-be-unmuted')), this.BROWSER_WAIT_TIMEOUT_MS);
+							await chrome.sleep(1000);
+							const buttons = await chrome.findElements(By.id('subscriber-need-to-be-unmuted'));
+							buttons.forEach(button => button.click());
+						}
 					}
 					console.log('Browser works as expected');
 					const publisherVideos = await chrome.findElements(By.css("[id^=\"remote-video-str\"]"))
+					console.log('Found remote-video-str');
 					this.totalPublishers = currentPublishers + publisherVideos.length;
 					// Workaround, currently browsers timeout after 1h unless we send an HTTP request to Selenium
 					// set interval each minute to send a request to Selenium
@@ -342,32 +351,39 @@ export class RealBrowserService {
 	}
 
 	private generateWebappUrl(token: string, properties: TestProperties): string {
-		const publicUrl = !!process.env.OPENVIDU_URL ? `publicurl=${process.env.OPENVIDU_URL}&` : '';
-		const secret = !!process.env.OPENVIDU_SECRET ? `secret=${process.env.OPENVIDU_SECRET}&` : '';
-		const recordingMode = !!properties.recordingOutputMode ? `recordingmode=${properties.recordingOutputMode}&` : '';
-		const tokenParam = !!token ? `token=${token}` : '';
-		const qoeAnalysis = !!process.env.QOE_ANALYSIS;
-		return (
-			`https://${process.env.LOCATION_HOSTNAME}/?` +
-			publicUrl +
-			secret +
-			recordingMode +
-			tokenParam +
-			`role=${properties.role}&` +
-			`sessionId=${properties.sessionName}&` +
-			`userId=${properties.userId}&` +
-			`audio=${properties.audio}&` +
-			`video=${properties.video}&` +
-			`resolution=${properties.resolution}&` +
-			`showVideoElements=${properties.showVideoElements}&` +
-			`frameRate=${properties.frameRate}&` +
-			`qoeAnalysis=${qoeAnalysis}`
-		);
+		// Return sessionUrl as WebappUrl when provided
+		const sessionUrl = !!properties.sessionUrl ? `${properties.sessionUrl}` : '';
+		if (sessionUrl) {
+			return sessionUrl;
+		} else {
+			const publicUrl = !!process.env.OPENVIDU_URL ? `publicurl=${process.env.OPENVIDU_URL}&` : '';
+			const secret = !!process.env.OPENVIDU_SECRET ? `secret=${process.env.OPENVIDU_SECRET}&` : '';
+			const recordingMode = !!properties.recordingOutputMode ? `recordingmode=${properties.recordingOutputMode}&` : '';
+			const tokenParam = !!token ? `token=${token}` : '';
+			const qoeAnalysis = !!process.env.QOE_ANALYSIS;
+			return (
+				`https://${process.env.LOCATION_HOSTNAME}/?` +
+				publicUrl +
+				secret +
+				recordingMode +
+				tokenParam +
+				`role=${properties.role}&` +
+				`sessionId=${properties.sessionName}&` +
+				`userId=${properties.userId}&` +
+				`audio=${properties.audio}&` +
+				`video=${properties.video}&` +
+				`resolution=${properties.resolution}&` +
+				`showVideoElements=${properties.showVideoElements}&` +
+				`frameRate=${properties.frameRate}&` +
+				`qoeAnalysis=${qoeAnalysis}`
+			);
+		}
 	}
 
 	private existMediaFiles(resolution: string, framerate: number): boolean {
 		const videoFile = `${process.env.PWD}/src/assets/mediafiles/fakevideo_${framerate}fps_${resolution}.y4m`;
 		const audioFile = `${process.env.PWD}/src/assets/mediafiles/fakeaudio.wav`;
+
 		try {
 			return fs.existsSync(videoFile) && fs.existsSync(audioFile);
 		} catch (error) {
