@@ -58,7 +58,7 @@ Resources:
             source /etc/lsb-release # Get Ubuntu version definitions (DISTRIB_CODENAME).
             add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $DISTRIB_CODENAME stable"
             apt-get update && apt-get install --no-install-recommends --yes \
-                docker-ce
+                docker-ce docker-buildx-plugin
           }
 
           #git clone https://github.com/OpenVidu/openvidu-loadtest.git /opt/openvidu-loadtest
