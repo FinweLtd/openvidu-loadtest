@@ -292,7 +292,9 @@ public class LoadTestController {
 			Map<String, String> headers = new HashMap<String, String>();
 			headers.put("Api-Key", loadTestConfig.getClientApiKey());
 
-			final int maxRetries = 1;
+			final int maxAuthRetries = 3;
+			final int maxTimeoutRetries = 20;
+			int maxRetries = maxAuthRetries;
 			int retries = 0;
 			while (retries <= maxRetries) {
 				if (currentAuthToken.isBlank()) {
@@ -304,20 +306,42 @@ public class LoadTestController {
 
 				HttpResponse<String> response = this.httpClient.sendPost(
 					loadTestConfig.getClientSessionUrl(), body, null, headers);
-				if (httpStatusOk(response.statusCode())) {
+				final int responseStatusCode = response.statusCode();
+				if (httpStatusOk(responseStatusCode)) {
 					JsonObject jsonResponse = jsonUtils.getJson(response.body());
 					sessionUrl = jsonResponse.get("userURL").getAsString();
-					log.info("Response body: {}", response.body());
+					log.info("New session response body: {}", response.body());
 					break;
 				} else {
-					++retries;
-					if (retries <= maxRetries) {
+					// Check if statusCode is 401 Unauthorized or NOT server error
+					if (responseStatusCode < 500) {
 						// Clear current token to get new one
 						currentAuthToken = "";
+						if (maxAuthRetries != maxRetries) {
+							// Previous retries were due to timeout, so reset maxRetries
+							maxRetries = maxAuthRetries;
+							retries = 0;
+						} else {
+							++retries;
+						}
+						sleep(3, "time before creating new auth token");
+
+					// Handle cases where statusCode is 504 Gateway Timeout or server error
 					} else {
-						log.error("Failed to get new session url (after retry), response status code: {}", response.statusCode());
-						log.error("Failed to get new session url, response body: {}", response.body());
+						if (maxTimeoutRetries != maxRetries) {
+							// Previous retries were due to authorization, so reset maxRetries
+							maxRetries = maxTimeoutRetries;
+							retries = 0;
+						} else {
+							++retries;
+						}
+						sleep(25, "Gateway Timeout (or server error), time before retry");
 					}
+				}
+
+				if (retries > maxRetries && sessionUrl.isBlank()) {
+					log.error("Failed to get new session url (after retry), latest response status code: {}", responseStatusCode);
+					log.error("Failed to get new session url, latest response body: {}", response.body());
 				}
 			}
 		} catch (Exception e) {
