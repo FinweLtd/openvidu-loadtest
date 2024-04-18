@@ -73,10 +73,12 @@ echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" |
 apt-get update
 apt-get install --no-install-recommends -y apt-transport-https curl gnupg
 apt-get update
-apt-get install --no-install-recommends -y build-essential bc make cmake git libopencv-dev python3-opencv bazel libnetpbm10-dev \
+apt-get install --no-install-recommends -y build-essential bc make cmake git libopencv-dev python3-opencv bazel-5.4.1 libnetpbm10-dev \
     libjpeg-turbo-progs imagemagick-6.q16 jq automake ca-certificates g++ libtool libleptonica-dev pkg-config nasm ninja-build \
     meson doxygen libx264-dev libx265-dev libnuma-dev
 pkg-config --cflags --libs opencv4
+
+ln -sf /usr/bin/bazel-5.4.1 /usr/bin/bazel
 
 ## Install VMAF
 if [[ ! -f "/usr/local/bin/vmaf" ]]; then
@@ -186,6 +188,7 @@ curl --output "/usr/local/share/tessdata/eng.traineddata" \
         --location "https://github.com/tesseract-ocr/tessdata/raw/main/eng.traineddata"
 		
 ## Install python dependencies
-pip3 install -r /opt/openvidu-loadtest/browser-emulator/qoe_scripts/requirements.txt
+# pip3 install -r /opt/openvidu-loadtest/browser-emulator/qoe_scripts/requirements.txt
+pip3 install -r "$SELF_PATH"/qoe_scripts/requirements.txt
 
 echo "Instance is ready"
